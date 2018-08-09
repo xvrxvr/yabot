@@ -73,8 +73,8 @@ reg [9:0] out_pulse_length = 0;
 reg rdy1 = 0;
 
 always @(posedge clk)
-	if (p_length<1000) out_pulse_length <= 10'h200; else
-	if (p_length>2000) out_pulse_length <= 10'h1FF; else
+	if (p_length<(1500-1024)) out_pulse_length <= 10'h200; else
+	if (p_length>(1500+1024)) out_pulse_length <= 10'h1FF; else
 	if ((p_length>1500-DELTA) && (p_length<1500+DELTA)) out_pulse_length <= 0;
 	else out_pulse_length <= {(p_length[11:0]-12'd1500)}[9:0];
 

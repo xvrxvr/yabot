@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <report-views version="2.0" >
  <header>
-  <DateModified>2018-08-09T15:01:06</DateModified>
+  <DateModified>2018-08-09T17:48:04</DateModified>
   <ModuleName>yabot_top</ModuleName>
   <SummaryTimeStamp>2018-08-09T14:38:54</SummaryTimeStamp>
-  <SavedFilePath>C:/Users/romankh/home/yabot/rtl-main/iseconfig/yabot_top.xreport</SavedFilePath>
-  <ImplementationReportsDirectory>C:/Users/romankh/home/yabot/rtl-main\</ImplementationReportsDirectory>
+  <SavedFilePath>C:/Users/romankh/home/yabot/github/rtl/yabot/iseconfig/yabot_top.xreport</SavedFilePath>
+  <ImplementationReportsDirectory>C:/Users/romankh/home/yabot/github/rtl/yabot\</ImplementationReportsDirectory>
   <DateInitialized>2018-07-23T11:17:29</DateInitialized>
   <EnableMessageFiltering>false</EnableMessageFiltering>
  </header>

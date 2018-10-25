@@ -201,6 +201,8 @@ PACKAGE fifo32_pkg IS
            WR_CLK                    : IN  std_logic;
      	   RD_CLK                    : IN  std_logic;
            VALID                     : OUT std_logic;
+           PROG_FULL                 : OUT std_logic;
+           PROG_EMPTY                : OUT std_logic;
            WR_EN 		     : IN  std_logic;
            RD_EN                     : IN  std_logic;
            DIN                       : IN  std_logic_vector(32-1 DOWNTO 0);

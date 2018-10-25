@@ -76,6 +76,8 @@ entity fifo32_exdes is
            WR_CLK                    : IN  std_logic;
      	   RD_CLK                    : IN  std_logic;
            VALID                     : OUT std_logic;
+           PROG_FULL                 : OUT std_logic;
+           PROG_EMPTY                : OUT std_logic;
            WR_EN 		     : IN  std_logic;
            RD_EN                     : IN  std_logic;
            DIN                       : IN  std_logic_vector(32-1 DOWNTO 0);
@@ -99,6 +101,8 @@ architecture xilinx of fifo32_exdes is
            WR_CLK                    : IN  std_logic;
      	   RD_CLK                    : IN  std_logic;
            VALID                     : OUT std_logic;
+           PROG_FULL                 : OUT std_logic;
+           PROG_EMPTY                : OUT std_logic;
            WR_EN 		     : IN  std_logic;
            RD_EN                     : IN  std_logic;
            DIN                       : IN  std_logic_vector(32-1 DOWNTO 0);
@@ -129,6 +133,8 @@ begin
            WR_CLK                    => wr_clk_i,
            RD_CLK                    => rd_clk_i,
            VALID                     => valid,
+           PROG_FULL                 => prog_full,
+           PROG_EMPTY                => prog_empty,
            WR_EN 		     => wr_en,
            RD_EN                     => rd_en,
            DIN                       => din,

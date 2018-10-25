@@ -45,7 +45,9 @@ module fifo32(
   dout,
   full,
   empty,
-  valid
+  valid,
+  prog_full,
+  prog_empty
 );
 
 input wr_clk;
@@ -57,6 +59,8 @@ output [31 : 0] dout;
 output full;
 output empty;
 output valid;
+output prog_full;
+output prog_empty;
 
 // synthesis translate_off
 
@@ -170,30 +174,30 @@ output valid;
     .C_PRELOAD_LATENCY(0),
     .C_PRELOAD_REGS(1),
     .C_PRIM_FIFO_TYPE("8kx4"),
-    .C_PROG_EMPTY_THRESH_ASSERT_VAL(4),
+    .C_PROG_EMPTY_THRESH_ASSERT_VAL(2000),
     .C_PROG_EMPTY_THRESH_ASSERT_VAL_AXIS(1022),
     .C_PROG_EMPTY_THRESH_ASSERT_VAL_RACH(1022),
     .C_PROG_EMPTY_THRESH_ASSERT_VAL_RDCH(1022),
     .C_PROG_EMPTY_THRESH_ASSERT_VAL_WACH(1022),
     .C_PROG_EMPTY_THRESH_ASSERT_VAL_WDCH(1022),
     .C_PROG_EMPTY_THRESH_ASSERT_VAL_WRCH(1022),
-    .C_PROG_EMPTY_THRESH_NEGATE_VAL(5),
-    .C_PROG_EMPTY_TYPE(0),
+    .C_PROG_EMPTY_THRESH_NEGATE_VAL(2001),
+    .C_PROG_EMPTY_TYPE(1),
     .C_PROG_EMPTY_TYPE_AXIS(0),
     .C_PROG_EMPTY_TYPE_RACH(0),
     .C_PROG_EMPTY_TYPE_RDCH(0),
     .C_PROG_EMPTY_TYPE_WACH(0),
     .C_PROG_EMPTY_TYPE_WDCH(0),
     .C_PROG_EMPTY_TYPE_WRCH(0),
-    .C_PROG_FULL_THRESH_ASSERT_VAL(8191),
+    .C_PROG_FULL_THRESH_ASSERT_VAL(6000),
     .C_PROG_FULL_THRESH_ASSERT_VAL_AXIS(1023),
     .C_PROG_FULL_THRESH_ASSERT_VAL_RACH(1023),
     .C_PROG_FULL_THRESH_ASSERT_VAL_RDCH(1023),
     .C_PROG_FULL_THRESH_ASSERT_VAL_WACH(1023),
     .C_PROG_FULL_THRESH_ASSERT_VAL_WDCH(1023),
     .C_PROG_FULL_THRESH_ASSERT_VAL_WRCH(1023),
-    .C_PROG_FULL_THRESH_NEGATE_VAL(8190),
-    .C_PROG_FULL_TYPE(0),
+    .C_PROG_FULL_THRESH_NEGATE_VAL(5999),
+    .C_PROG_FULL_TYPE(1),
     .C_PROG_FULL_TYPE_AXIS(0),
     .C_PROG_FULL_TYPE_RACH(0),
     .C_PROG_FULL_TYPE_RDCH(0),
@@ -261,6 +265,8 @@ output valid;
     .FULL(full),
     .EMPTY(empty),
     .VALID(valid),
+    .PROG_FULL(prog_full),
+    .PROG_EMPTY(prog_empty),
     .BACKUP(),
     .BACKUP_MARKER(),
     .CLK(),
@@ -285,8 +291,6 @@ output valid;
     .DATA_COUNT(),
     .RD_DATA_COUNT(),
     .WR_DATA_COUNT(),
-    .PROG_FULL(),
-    .PROG_EMPTY(),
     .SBITERR(),
     .DBITERR(),
     .M_ACLK(),

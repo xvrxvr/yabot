@@ -173,36 +173,7 @@ module tst_module;
 	
 	end
 
-task automatic gen_pulses1(input integer rep, input integer dly);
-	repeat (rep) begin
-		rc[4] <= 1'b1;
-		#(dly*1000);
-		rc[4] <= 1'b0;
-		#10000000;
-	end
-endtask
 
-task automatic gen_pulses2(input integer rep, input integer dly);
-	repeat (rep) begin
-		rc[5] <= 1'b1;
-		#(dly*1000);
-		rc[5] <= 1'b0;
-		#10000000;
-	end
-endtask
-
-always begin
-//	gen_pulses1(10, 1500);
-	gen_pulses1(10, 1000);
-	gen_pulses1(10, 2000);
-end
-
-always begin
-	gen_pulses2(9, 1500);
-//	gen_pulses2(11, 1000);
-//	gen_pulses2(9, 2000);
-end
-		
         
       
 endmodule

@@ -21,8 +21,8 @@ module yabot_top(
     input wire jetson_spi_clk,
     input wire jetson_spi_cs,
     // Universal GPIO
-    `INOUT wire jetson_io20,
-    `INOUT wire jetson_io19,
+    output wire jetson_io20,
+    output wire jetson_io19,
     `INOUT wire jetson_io11,
     // Output only GPIO
     output wire jetson_io16,
@@ -91,7 +91,6 @@ module yabot_top(
 
 );
 
-
 // Jetson -> core buses
 wire [3:0]  wr_addr;
 wire [3:0]  wr_ctrl;
@@ -112,8 +111,8 @@ SPIJetson spi_jetson(
    .spi_miso(jetson_spi_miso),
    .spi_cs(jetson_spi_cs),
 
-   .gpio_not_empty(jetson_io9),
-   .gpio_not_full(jetson_io8),
+	.gpio_wr_status({jetson_io9, jetson_io8}),
+	.gpio_rd_status({jetson_io20, jetson_io19}),
 	 
 	// Internal connection
 	// Write side (core -> jetson)
@@ -157,6 +156,8 @@ RemoteCtl rct(`IN(5),     `OUT_CA(5), .rc(rc[5:0]));
 Servo   servo(`IN(13),  .servo_out(serv));
 GPIO     gpio(`IN(14),  .gpio_out({amp_mute,amp_stby,dac_mute,dac_demp,dac_flt,ledm[3],ledp[3],ledm[2],ledp[2],ledm[1],ledp[1],ledm[0],ledp[0]}));
 PowerOff poff(`IN(15),  .pwr_off(pwr_off));
+
+assign jetson_io16 = radio_mirq;
 
 endmodule
 

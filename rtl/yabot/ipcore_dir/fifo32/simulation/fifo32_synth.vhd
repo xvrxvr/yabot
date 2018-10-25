@@ -98,6 +98,8 @@ ARCHITECTURE simulation_arch OF fifo32_synth IS
     SIGNAL wr_clk_i                       :   STD_LOGIC;
     SIGNAL rd_clk_i                       :   STD_LOGIC;
     SIGNAL valid                          :   STD_LOGIC;
+    SIGNAL prog_full                      :   STD_LOGIC;
+    SIGNAL prog_empty                     :   STD_LOGIC;
     SIGNAL wr_en                          :   STD_LOGIC;
     SIGNAL rd_en                          :   STD_LOGIC;
     SIGNAL din                            :   STD_LOGIC_VECTOR(32-1 DOWNTO 0);
@@ -255,6 +257,8 @@ ARCHITECTURE simulation_arch OF fifo32_synth IS
            WR_CLK                    => wr_clk_i,
            RD_CLK                    => rd_clk_i,
            VALID                     => valid,
+           PROG_FULL                 => prog_full,
+           PROG_EMPTY                => prog_empty,
            WR_EN 		     => wr_en,
            RD_EN                     => rd_en,
            DIN                       => din,

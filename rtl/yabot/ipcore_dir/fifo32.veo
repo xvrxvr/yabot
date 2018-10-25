@@ -66,7 +66,9 @@ fifo32 your_instance_name (
   .dout(dout), // output [31 : 0] dout
   .full(full), // output full
   .empty(empty), // output empty
-  .valid(valid) // output valid
+  .valid(valid), // output valid
+  .prog_full(prog_full), // output prog_full
+  .prog_empty(prog_empty) // output prog_empty
 );
 // INST_TAG_END ------ End INSTANTIATION Template ---------
 

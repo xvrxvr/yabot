@@ -8,8 +8,8 @@ module SPIJetson(
    output wire spi_miso,
    input wire spi_cs,
 	
-	output wire gpio_not_empty,
-	output wire gpio_not_full,
+	output wire [1:0] gpio_wr_status, // Host -> SPI status
+	output wire [1:0] gpio_rd_status, // SPI -> Host status
 	 
 	// Internal connection
 	input wire clk,
@@ -28,7 +28,10 @@ module SPIJetson(
 
 reg [31:0] input_reg = 0; // Input data register
 wire spi_cs_to_clk; // Resync of spi_cs to clk domain
-wire flag_full; // FULL from spi->core fifo
+wire s2c_full; // FULL from spi->core fifo
+wire s2c_almost_empty;
+wire s2c_almost_full;
+
 
 always @(posedge spi_clk)
 	input_reg <= (input_reg<<1) | spi_mosi;
@@ -41,9 +44,9 @@ always @(posedge clk)
 	
 fifo32 spi2core_fifo(.wr_clk(clk), .rd_clk(clk), .din(input_reg), .wr_en(spi_cs_to_clk & ~sctc_dly & (input_reg[31:28]!=0)),
   .rd_en(rd_en), .dout(rd_dout), .valid(rd_rdy),
-  .full(flag_full), .empty()  
+  .full(s2c_full), .empty(), .prog_full(s2c_almost_full), .prog_empty(s2c_almost_empty)
 );  
-assign gpio_not_full = ~flag_full;
+assign gpio_wr_status = {s2c_almost_empty|s2c_full, s2c_almost_full|s2c_full};
 
 
 ///////////// core -> SPI ////////////////////////////////////////////
@@ -54,6 +57,8 @@ reg first_bit = 0; // Set to 1 for first bit of SPI transaction
 
 wire has_data; // Do we have something to read?
 wire fifo_empty; // Is FIFO empty?
+wire c2s_almost_full;
+wire c2s_almost_empty;
 wire [31:0] fifo_data; // data from fifo
 
 // Set 'first_bit' only for first spi_cs clock after leading endge of spi_cs
@@ -63,9 +68,9 @@ always @(posedge spi_clk or negedge spi_cs)
 
 fifo32 core2spi_fifo(.wr_clk(clk), .rd_clk(spi_clk), .din(wr_din), .wr_en(wr_en),
   .rd_en(first_bit), .dout(fifo_data), .valid(has_data),
-  .full(), .empty(fifo_empty)
+  .full(), .empty(fifo_empty), .prog_full(c2s_almost_full), .prog_empty(c2s_almost_empty)
 );  
-assign gpio_not_empty = ~fifo_empty;
+assign gpio_rd_status = {c2s_almost_empty|fifo_empty, c2s_almost_full|fifo_empty};
 
 // manage SPI data register
 always @(posedge spi_clk)

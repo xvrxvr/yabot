@@ -66,7 +66,7 @@ always @(posedge clk)
 
 // Output
 assign spi_clk = !cs & clk_out;
-assign spi_cs = cs;
+assign spi_cs = !cs;
 assign spi_mosi = to_spi[TO_SPI_BITS-1];
 assign from_spi_data = from_spi[TO_SPI_BITS +: FROM_SPI_BITS];
 assign stb_rdy = rdy;

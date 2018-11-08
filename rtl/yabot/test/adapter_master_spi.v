@@ -19,15 +19,16 @@ initial begin
 	spi_cs = 1'b1;
 end
 
-genvar i;
-generate for(i=0; i<16; i=i+1)
-begin :block
-queue #("MASTER-SPI-EXPECTED", BUF_SIZE, 28) expected_queue();
-end
-endgenerate
+//genvar i;
+//generate for(i=0; i<16; i=i+1)
+//begin :block
+queue #(BUF_SIZE, 28) expected_queue();
+//end
+//endgenerate
 
 task expect(input integer index, input integer data);
-    block[index].expected_queue.write(data);
+//    block[index].expected_queue.write(data);
+    expected_queue.write(data, index);
 endtask
 
 task send(input integer index, input integer data);
@@ -35,6 +36,7 @@ task send(input integer index, input integer data);
     integer i;
 
     begin
+    $display("(%0t) Jetson: Send %h (%d)", $time, data, index);
     spi_data_out = data | (index << 28);
     spi_cs = 1'b0;
 	 acc = 0;
@@ -53,32 +55,33 @@ task send(input integer index, input integer data);
 
     index = (acc >> 28) & 15;
     acc = acc & 32'h0FFFFFFF;
+    $display("(%0t) Jetson: Send done, recieved: %h (%d)", $time, acc, index);
 
-    if (index==0 && !block[0].expected_queue.can_read())
+    if (index==0 && !expected_queue.can_read(0))
     begin
         if (status_reg != acc)
         begin
-            $display("(%0t) Jetson SPI #0: Unexpected - shadow reg is %h, got %h",$time,status_reg,acc);
+            $display("Error (%0t) Jetson SPI #0: Unexpected - shadow reg is %h, got %h",$time,status_reg,acc);
             $stop();
         end
     end
-    else if (!block[index].expected_queue.can_read())
+    else if (!expected_queue.can_read(index))
     begin
-        $display("(%0t) Jetson SPI #%d: Underflow (got data %h)",$time,index,acc);
+        $display("Error (%0t) Jetson SPI #%d: Underflow (got data %h)",$time,index,acc);
         $stop();
     end
     else
     begin
-        i = block[index].expected_queue.read();
+        i = expected_queue.read(index);
         if (i != acc)
         begin
-            $display("(%0t) Jetson SPI #%d: Unexpected - expected %h, got %h",$time,index,i,acc);
+            $display("Error (%0t) Jetson SPI #%d: Unexpected - expected %h, got %h",$time,index,i,acc);
             $stop();
         end
     end
 
     if (index==0) status_reg = acc;
-	 end
+    end
 endtask
 
 

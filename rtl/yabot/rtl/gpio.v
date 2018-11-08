@@ -11,7 +11,7 @@ module GPIO(
     input wire in_wr
 );
 
-reg [23:0] gpio;
+reg [23:0] gpio = 0;
 
 always @(posedge clk)
     if (in_wr) gpio <= in_data;

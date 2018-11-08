@@ -23,7 +23,11 @@ wire stb_rdy;
 reg stb_out = 0;
 
 wire [11:0] data;
-assign out_data = {14'b0, data[9:0]};
+reg [7:0] in_addr = 0;
+assign out_data = {in_addr, 6'b0, data[9:0]};
+
+always @(posedge clk)
+    if (in_wr) in_addr <= in_data[7:0];
 
 SPIMaster #(.DIV(5), .TO_SPI_BITS(6), .FROM_SPI_BITS(12)) adc(.clk(clk),
     .spi_miso(adc_do), .spi_mosi(adc_di), .spi_clk(adc_clk), .spi_cs(adc_cs),

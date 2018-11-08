@@ -26,27 +26,28 @@ module tst_module;
 
 	// Inputs
 	reg clk = 0;
-	reg [1:0] bi_key;
-	reg jetson_spi_mosi;
-	reg jetson_spi_clk;
-	reg jetson_spi_cs;
-	reg jetson_io20;
-	reg jetson_io19;
-	reg jetson_io11;
-	reg radio_mirq;
-	reg radio_sdo;
-	reg [7:0] rc;
-	reg adc_do;
-	reg motor1_en_diag;
-	reg motor2_en_diag;
-	reg [3:0] btn;
-	reg xt_echo;
-	reg xr1_echo;
-	reg xr23_echo;
-	reg xb_echo;
-	reg xl12_echo;
-	reg xl3_echo;
-	reg [1:0] ppr_m;
+	reg [1:0] bi_key = 0;
+	
+	wire jetson_spi_mosi;
+	wire jetson_spi_clk;
+	wire jetson_spi_cs;
+	wire jetson_io20;
+	wire jetson_io19;
+	wire jetson_io11;
+	wire radio_mirq;
+	wire radio_sdo;
+	wire [7:0] rc;
+	wire adc_do;
+	reg motor1_en_diag = 0;
+	reg motor2_en_diag = 0;
+	wire [3:0] btn;
+	wire xt_echo;
+	wire xr1_echo;
+	wire xr23_echo;
+	wire xb_echo;
+	wire xl12_echo;
+	wire xl3_echo;
+	wire [1:0] ppr_m;
 
 	// Outputs
 	wire [1:0] bi_led;
@@ -143,38 +144,82 @@ module tst_module;
 	always #10 clk <= ~clk;
 
 	initial begin
+		$timeformat ( -9,0," ns",15);
 		// Initialize Inputs
-		bi_key = 0;
-		jetson_spi_mosi = 0;
-		jetson_spi_clk = 0;
-		jetson_spi_cs = 0;
-		jetson_io20 = 0;
-		jetson_io19 = 0;
-		jetson_io11 = 0;
-		radio_mirq = 0;
-		radio_sdo = 0;
-		rc = 0;
-		adc_do = 0;
-		motor1_en_diag = 0;
-		motor2_en_diag = 0;
-		btn = 0;
-		xt_echo = 0;
-		xr1_echo = 0;
-		xr23_echo = 0;
-		xb_echo = 0;
-		xl12_echo = 0;
-		xl3_echo = 0;
-		ppr_m = 0;
 
 		// Wait 100 ns for global reset to finish
 		#100;
 		
 		// Add stimulus here
+
+      check_wire("dac_flt", dac_flt, 0);
+		check_wire("dac_demp", dac_demp, 0);
+		check_wire("dac_mute", dac_mute, 0);
+		check_wire("amp_stby", amp_stby, 0);
+		check_wire("amp_mute", amp_mute, 0);
+		check_wire("pwr_off", pwr_off, 0);
+		check_wire("jetson_io20", jetson_io20, 0);
+		check_wire("jetson_io19", jetson_io19, 0);
+		check_wire("jetson_io11", jetson_io11, 0);
+		check_wire("jetson_io16", jetson_io16, 0);
+		check_wire("jetson_io9", jetson_io9, 0);
+		check_wire("jetson_io8", jetson_io8, 0);
+		check_wire("motor1_inb", motor1_inb, 0);
+		check_wire("motor1_ina", motor1_ina, 0);
+		check_wire("motor2_inb", motor2_inb, 0);
+		check_wire("motor2_ina", motor2_ina, 0);
+		
+		check_wire("ledp", ledp, 0);
+		check_wire("ledm", ledm, 0);
+		
+		$stop();
 	
 	end
 
+adapter_btn #("BTN1") btn1 (btn[0]);
+adapter_btn #("BTN2") btn2 (btn[1]);
+adapter_btn #("BTN3") btn3 (btn[2]);
+adapter_btn #("BTN4") btn4 (btn[3]);
 
-        
+adapter_echo #("XT") echo_xt(xt_echo, xt_trig);
+adapter_echo #("XR1") echo_xr1(xr1_echo, xr1_trig);
+adapter_echo #("XR23") echo_xr23(xr12_echo, xr12_trig);
+adapter_echo #("XB") echo_xb(xb_echo, xw_trig);
+adapter_echo #("XL12") echo_xl12(xl12_echo, xl12_trig);
+
+assign al3_echo = 1'b0;
+
+adapter_master_spi jetson(jetson_spi_clk,jetson_spi_mosi,jetson_spi_miso,jetson_spi_cs);
+
+adapter_pwm #("SERV1") srv1(serv[0]);
+adapter_pwm #("SERV2") srv2(serv[1]);
+adapter_pwm #("MOTOR1") motor1(motor1_pwm);
+adapter_pwm #("MOTOR2") motor2(motor2_pwm);
+
+adapter_slave_spi #("RADIO", 32) spi_radio(radio_sclk, radio_sdi, radio_sdo, radio_msel);
+adapter_slave_spi #("ADC", 16) spi_adc(adc_clk, adc_di, adc_do, adc_cs);
+
+pgen_adapter #("RC1") rc_gen0(rc[0]);
+pgen_adapter #("RC2") rc_gen1(rc[1]);
+pgen_adapter #("RC3") rc_gen2(rc[2]);
+pgen_adapter #("RC4") rc_gen3(rc[3]);
+pgen_adapter #("RC5") rc_gen4(rc[4]);
+pgen_adapter #("RC6") rc_gen5(rc[5]);
+
+pgen_adapter #("PPR1") ppr_gen1(ppr_m[0]);
+pgen_adapter #("PPR2") ppr_gen2(ppr_m[1]);
+
+task check_wire(input [87:0] name, input bit_val, input org_val);
+begin
+if (bit_val!==org_val)
+begin
+	$display("Error (%0t) %s: Wrong value %h (%h expected)", $time, name, bit_val, org_val);
+	$stop();
+end
+$display("(%0t) %s: %h", $time, name, bit_val);
+end
+endtask
+
       
 endmodule
 

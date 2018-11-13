@@ -23,7 +23,7 @@ module yabot_top(
     // Universal GPIO
     output wire jetson_io20,
     output wire jetson_io19,
-    `INOUT wire jetson_io11,
+    input wire jetson_io11,
     // Output only GPIO
     output wire jetson_io16,
     output wire jetson_io9,
@@ -111,8 +111,10 @@ SPIJetson spi_jetson(
    .spi_miso(jetson_spi_miso),
    .spi_cs(jetson_spi_cs),
 
-	.gpio_wr_status({jetson_io9, jetson_io8}),
-	.gpio_rd_status({jetson_io20, jetson_io19}),
+
+	.gpio_rd_valid(jetson_io8),
+	.gpio_rd_urgent(jetson_io9),
+	.gpio_rd_cntreq(jetson_io11),
 	 
 	// Internal connection
 	// Write side (core -> jetson)

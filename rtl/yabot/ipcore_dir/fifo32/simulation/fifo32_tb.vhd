@@ -195,7 +195,7 @@ BEGIN
    GENERIC MAP(
               FREEZEON_ERROR => 0,
  	      TB_STOP_CNT    => 2,
- 	      TB_SEED        => 112 
+ 	      TB_SEED        => 36 
  	      )
   PORT MAP(
 	   WR_CLK        => wr_clk,

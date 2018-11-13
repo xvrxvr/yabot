@@ -75,9 +75,9 @@ entity fifo32_exdes is
    PORT (
            WR_CLK                    : IN  std_logic;
      	   RD_CLK                    : IN  std_logic;
+           RD_DATA_COUNT             : OUT std_logic_vector(13-1 DOWNTO 0);
            VALID                     : OUT std_logic;
            PROG_FULL                 : OUT std_logic;
-           PROG_EMPTY                : OUT std_logic;
            WR_EN 		     : IN  std_logic;
            RD_EN                     : IN  std_logic;
            DIN                       : IN  std_logic_vector(32-1 DOWNTO 0);
@@ -100,9 +100,9 @@ architecture xilinx of fifo32_exdes is
    PORT (
            WR_CLK                    : IN  std_logic;
      	   RD_CLK                    : IN  std_logic;
+           RD_DATA_COUNT             : OUT std_logic_vector(13-1 DOWNTO 0);
            VALID                     : OUT std_logic;
            PROG_FULL                 : OUT std_logic;
-           PROG_EMPTY                : OUT std_logic;
            WR_EN 		     : IN  std_logic;
            RD_EN                     : IN  std_logic;
            DIN                       : IN  std_logic_vector(32-1 DOWNTO 0);
@@ -132,9 +132,9 @@ begin
     PORT MAP (
            WR_CLK                    => wr_clk_i,
            RD_CLK                    => rd_clk_i,
+           RD_DATA_COUNT             => rd_data_count,
            VALID                     => valid,
            PROG_FULL                 => prog_full,
-           PROG_EMPTY                => prog_empty,
            WR_EN 		     => wr_en,
            RD_EN                     => rd_en,
            DIN                       => din,

@@ -67,8 +67,8 @@ fifo32 your_instance_name (
   .full(full), // output full
   .empty(empty), // output empty
   .valid(valid), // output valid
-  .prog_full(prog_full), // output prog_full
-  .prog_empty(prog_empty) // output prog_empty
+  .rd_data_count(rd_data_count), // output [12 : 0] rd_data_count
+  .prog_full(prog_full) // output prog_full
 );
 // INST_TAG_END ------ End INSTANTIATION Template ---------
 

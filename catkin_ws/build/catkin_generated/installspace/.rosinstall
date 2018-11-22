@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/ykirpichev/sources/yabot/catkin_ws/install/setup.sh

@@ -26,8 +26,10 @@ reg [1:0] motor_dir =0; // Direction for Motors
 reg [10:0] motor_pwm1 = 0;
 reg [10:0] motor_pwm2 = 0;
 
-assign motor_ina = motor_dir;
-assign motor_inb = ~motor_dir;
+wire [1:0] motor_active = {motor_pwm2 != 0, motor_pwm1 != 0};
+
+assign motor_ina = motor_dir & motor_active;
+assign motor_inb = ~motor_dir & motor_active;
 
 reg [11:0] ppr_1 = 0; // Distance counter for Motor1
 reg [11:0] ppr_2 = 0; // Distance counter for Motor2

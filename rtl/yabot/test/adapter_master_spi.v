@@ -48,6 +48,8 @@ task send(input integer index, input integer data);
         spi_clk = 1'b1;
         #25;
         acc = (acc<<1) | spi_miso;
+		  spi_clk = 1'b0;
+		  spi_data_out = spi_data_out << 1;
     end
 
     #50;

@@ -28,8 +28,8 @@ reg cs_raw = 1'b0; // SPI CS not reclocked to SPI CLK
 reg rdy = 1'b0;
 reg [$clog2(TO_SPI_BITS+FROM_SPI_BITS)-1: 0] bit_counter = 0; // SPI bit counter
 
-wire leading_edge = ~cs & ~clk_out & clk_ff; // Tick before leading edge
-wire falling_edge = ~cs & clk_out & clk_ff; // Tick before falling edge
+wire leading_edge = cs & ~clk_out & clk_ff; // Tick before leading edge
+wire falling_edge = cs & clk_out & clk_ff; // Tick before falling edge
 
 Divider #(DIV/2) divider(.clk(clk), .reset(1'b0), .out(clk_ff));
 

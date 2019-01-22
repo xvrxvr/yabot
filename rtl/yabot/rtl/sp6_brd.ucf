@@ -1,5 +1,5 @@
 //global system clock
-NET "clk" 		    LOC = A10 	|IOSTANDARD = LVTTL;
+NET "clk_in" 		    LOC = A10 	|IOSTANDARD = LVTTL;
 //led_1 signal
 NET "bi_led[0]"		LOC = T9 	|IOSTANDARD = LVTTL |DRIVE = 24;
 //led_2 signal
@@ -102,7 +102,7 @@ NET "xl3_trig"	    LOC = K15     |IOSTANDARD = LVTTL;
 NET "serv[0]"	    LOC = K16     |IOSTANDARD = LVTTL;
 NET "serv[1]"	    LOC = L16     |IOSTANDARD = LVTTL;
 #Created by Constraints Editor (xc6slx16-ftg256-2) - 2018/08/08
-NET "clk" TNM_NET = clk;
-TIMESPEC TS_clk = PERIOD "clk" 50 MHz HIGH 50%;
+NET "clk_in" TNM_NET = clk_in;
+TIMESPEC TS_clk = PERIOD "clk_in" 50 MHz HIGH 50%;
 
 NET "jetson_spi_cs" CLOCK_DEDICATED_ROUTE = FALSE;

@@ -4,7 +4,7 @@
 `define INOUT input
 
 module yabot_top(
-    input wire clk,
+    input wire clk_in,
 
     // On board resources
     output wire [1:0] bi_led,
@@ -90,6 +90,11 @@ module yabot_top(
     output wire [1:0] serv
 
 );
+wire clk_200;
+wire clk;
+
+dcm dcm200(clk_in, clk_200, clk);
+
 
 // Jetson -> core buses
 wire [3:0]  wr_addr;
@@ -104,6 +109,7 @@ wire rd_stb;
 
 SPIJetson spi_jetson(
     .clk(clk), 
+	 .clk_200(clk_200),
 
 	// SPI (Jetson) interface
    .spi_clk(jetson_spi_clk),
@@ -146,7 +152,8 @@ assign rd_addr[3] = 0;
 `define OUT_IDX(idx) assign rb_data[idx*28+24 +: 4] = 4'b0;
 
 // Modules
-Status  status(.clk(clk), `OUT_C(0),  .keys(btn), .locks({motor1_en_diag, motor2_en_diag}));
+Status  status(.clk(clk), `OUT(0),  .keys(btn), .locks({motor1_en_diag, motor2_en_diag}));
+`OUT_IDX(0)
 Sonar   sonar(`IN_C(1),   `OUT_CA(1), .hc04_echo({xt_echo,xr1_echo,xr23_echo,xb_echo,xl12_echo,xl3_echo}), .hc04_trigger({xt_trig,xr1_trig,xr23_trig,xb_trig,xl12_trig,xl3_trig}));
 Motor   motor(`IN_C(2),   `OUT_C(2),  .motor_inb({motor2_inb,motor1_inb}), .motor_ina({motor2_ina,motor1_ina}), .motor_pwm({motor2_pwm,motor1_pwm}), .ppr_sence(ppr_m));
 ADC       adc(`IN(3),     `OUT(3),    .adc_cs(adc_cs), .adc_clk(adc_clk), .adc_di(adc_di), .adc_do(adc_do));

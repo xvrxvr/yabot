@@ -4,14 +4,15 @@
 
 class SPIBrigeManager {
     std::deque<uint32_t> to_spi_data, from_spi_data;
-    std::vector<uint32_t> spi_exchange;
+    std::vector<uint32_t> spi_exchange, spi_exchange_int;
     std::thread overflow_thread;
     std::mutex overflow_queue_guard;
 
     int spi_handle;
     int gpio_data_valid, gpio_almost_full, gpio_get_sizes, gpio_radio_int;
+    int prev_gpio_get_sizes;
 
-    spi_ioc_transfer spi_xref;
+    spi_ioc_transfer spi_xref, spi_xfer_int;
 
     void hw_activate();
     void hw_deactivate();
@@ -21,6 +22,8 @@ class SPIBrigeManager {
     bool spi_exchange_loop();
 
     void low_level_spi_exchange(int size);
+    void low_level_spi_exchange_int();
+
     int open_gpio(int pin_idx, const char* setup, const char* int_edge=NULL);
 
 public:

@@ -15,11 +15,12 @@ namespace spi_integrator {
 }
 
 
-SPIBrigeManager::SPIBrigeManager() : spi_exchange(SPI_QUEUE_SIZE)
+SPIBrigeManager::SPIBrigeManager() : spi_exchange(SPI_QUEUE_SIZE), spi_exchange_int(SPI_INT_QUEUE_SIZE)
 {
     gpio_handle = spi_handle = gpio_data_valid = gpio_almost_full = gpio_get_sizes = gpio_radio_int = -1;
+    prev_gpio_get_sizes = 0;
     hw_activate();
-    overflow_thread = std::thread([] {this->overflow_thread_handle();});
+    overflow_thread = std::thread([this] {this->overflow_thread_handle();});
     spi_integrator::SPIDevInterface::init_all();
 }
 
@@ -45,9 +46,13 @@ void SPIBrigeManager::hw_activate()
     IOCTL(SPI_IOC_WR_MAX_SPEED_HZ, max_spi_freq);
 
     memset(&xref, 0, sizeof(xref));
-    xref.tx_buf = xref.rx_buf = (uint64_t)spi_exchange.data();
 	xref.speed_hz = max_spi_freq;
 	xref.bits_per_word = 32;
+
+    spi_xfer_int = xref;
+    xref.tx_buf = xref.rx_buf = (uint64_t)spi_exchange.data();
+    spi_xfer_int.rx_buf  = (uint64_t)spi_exchange_int.data();
+    spi_xfer_int.len = SPI_INT_QUEUE_SIZE;
 
     gpio_data_valid  = open_gpio(GPIO_DATA_VALID, "in");
     gpio_almost_full = open_gpio(GPIO_ALMOST_FULL, "in", "rising");
@@ -58,11 +63,40 @@ void SPIBrigeManager::hw_activate()
 
 int SPIBrigeManager::open_gpio(int pin_idx, const char* setup, const char* int_edge)
 {
+    auto base_path = "/sys/class/gpio/gpio" + std::to_string(pin_idx);
+
+    struct stat st;
+
     // Check if /sys/class/gpio/gpio<pin_idx>/ exists 
-    //  if not - write "<pin_idx>" to /sys/class/gpio/export, recheck
+    if (stat(base_path.c_str(), &st) != -1)
+    {
+        CHK(st.st_mode & S_IFDIR ? 0:-1);
+    }
+    else
+    {
+        //  if not - write "<pin_idx>" to /sys/class/gpio/export, recheck
+        std::ofstream stream("/sys/class/gpio/export");
+        stream.exceptions(std::ofstream::failbit);
+        stream << pin_idx;
+        CHK(stat(base_path.c_str(), &st));
+    }
+
+    base_path += "/";
+
+    auto write = [&] (char* dst, char* cmd) {
+        std::ofstream stream((base_path + dst).c_str());
+        stream.exceptions(std::ofstream::failbit);
+        stream << cmd;
+    };
+
     // write <setup> to /sys/class/gpio/gpio<pin_idx>/direction
+    write("direction", setup);
+
     // write <edge> (if not NULL) to /sys/class/gpio/gpio<pin_idx>/edge
+    if (edge) write("edge", edge);
+
     // open /sys/class/gpio/gpio<pin_idx>/value and return handle
+    return CHK(::open((base_path + "value").c_str(), O_RDWR));
 }
 
 void SPIBrigeManager::hw_deactivate()
@@ -82,6 +116,11 @@ void SPIBrigeManager::low_level_spi_exchange(int size)
 {
     xref.len = size;
     CHK(ioctl(spi_handle, SPI_IOC_MESSAGE(1), &xfer));
+}
+
+void SPIBrigeManager::low_level_spi_exchange_int()
+{
+    CHK(ioctl(spi_handle, SPI_IOC_MESSAGE(1), &xfer_int));
 }
 
 

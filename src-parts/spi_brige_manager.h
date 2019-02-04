@@ -10,7 +10,7 @@ class SPIBrigeManager {
 
     int spi_handle;
     int gpio_data_valid, gpio_almost_full, gpio_get_sizes, gpio_radio_int;
-    int prev_gpio_get_sizes;
+    uint8_t prev_gpio_get_sizes;
 
     spi_ioc_transfer spi_xref, spi_xfer_int;
 
@@ -25,6 +25,8 @@ class SPIBrigeManager {
     void low_level_spi_exchange_int();
 
     int open_gpio(int pin_idx, const char* setup, const char* int_edge=NULL);
+
+    void flip_get_size();
 
 public:
     SPIBrigeManager();

@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <linux/types.h>
+#include <poll.h>
 
 #define SPI_FILE "/dev/spidev1.0"  // 1 - Bus, 0 - CS
 
@@ -124,8 +125,48 @@ void SPIBrigeManager::low_level_spi_exchange_int()
 }
 
 
+static int read1(int fd)
+{
+    uint8_t result;
+    ::lseek(fd, 0, SEEK_SET);
+    if (::read(fd, &result, 1) <= 0) return -1;
+    return result;
+}
+
+static void write1(int fd, uint8_t value)
+{
+    ::write(fd, &value, 1);
+}
+
+void SPIBrigeManager::flip_get_size()
+{
+    prev_gpio_get_sizes ^= 1;
+    write1(gpio_get_sizes, prev_gpio_get_sizes);
+}
+
 void SPIBrigeManager::overflow_thread_handle()
 {
+    pollfd pfd;
+    pfd.fd = gpio_almost_full;
+    pfd.events = POLLPRI|POLLERR|POLLIN;
+    for(;;)
+    {
+        pfd.revents = 0;
+        if (::poll(&pfd, 1, -1) <= 0) return;
+        if (pfd.revents & POLLERR) return;
+        switch(read1(gpio_almost_full))
+        {
+            case 0: continue;
+            case 1: break;
+            default: return;
+        }
+        std::unique_lock<std::mutex> lock(overflow_queue_guard, std::try_to_lock);
+        if (!lock) continue;
+        flip_get_size();
+        low_level_spi_exchange_int();
+        from_spi_data.insert(from_spi_data.back(), spi_exchange_int.begin(), spi_exchange_int.end());
+    }
+
 }
 
 bool SPIBrigeManager::spi_exchange_loop()

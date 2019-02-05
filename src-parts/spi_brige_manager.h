@@ -1,9 +1,21 @@
 ﻿#pragma once
 
 #include <linux/spi/spidev.h>
+#include "spi_integrator.h"
 
 class SPIBrigeManager {
-    std::deque<uint32_t> to_spi_data, from_spi_data;
+    struct LatencyDef {
+        spi_integrator::SpiDevices dev;
+        int latency;
+    };
+    constexpr static LatencyDef latencies[]={
+        {spi_integrator::SD_ADC, 3}, 
+        {spi_integrator::SD_Radio, 3}
+    };
+    constexpr static int total_latencies  = sizeof(latencies)/sizeof(latencies[0]);
+
+    std::deque<uint32_t> to_spi_data[1+total_latencies], from_spi_data;
+    int channel_encoder[spi_integrator::TOTAL_SPI_DEVICES];
     std::vector<uint32_t> spi_exchange, spi_exchange_int;
     std::thread overflow_thread;
     std::mutex overflow_queue_guard;
@@ -14,14 +26,16 @@ class SPIBrigeManager {
 
     spi_ioc_transfer spi_xref, spi_xfer_int;
 
+    int status_register;
+
     void hw_activate();
     void hw_deactivate();
 
     void overflow_thread_handle();
 
-    bool spi_exchange_loop();
+    bool spi_exchange_loop(bool first_entry);
 
-    void low_level_spi_exchange(int size);
+    void low_level_spi_exchange(int size, bool do_send);
     void low_level_spi_exchange_int();
 
     int open_gpio(int pin_idx, const char* setup, const char* int_edge=NULL);
@@ -34,12 +48,9 @@ public:
 
     void spi_exchange()
     {
-        spi_exchange_loop();
-        while(spi_exchange_loop()) {;}
+        spi_exchange_loop(true);
+        while(spi_exchange_loop(false)) {;}
     }
 
-    void on_data_arrived(uint32_t data_and_channel)
-    {
-        to_spi_data.push_back(data_and_channel);
-    }
+    void on_data_arrived(uint32_t data, uint32 channel);
 };

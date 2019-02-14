@@ -15,7 +15,7 @@ enum SpiDevices {
     SD_PowerOff = 15
 };
 
-static int TOTAL_SPI_DEVICES = 16;
+constexpr int TOTAL_SPI_DEVICES = 16;
 
 class SPIDevInterface {
     static SPIDevInterface* all_spi_interfaces[TOTAL_SPI_DEVICES];
@@ -44,6 +44,12 @@ public:
     {
         for(auto me: all_spi_interfaces)
             if (me) me->init();
+    }
+
+    static void on_tick_all()
+    {
+        for(auto me: all_spi_interfaces)
+            if (me) me->on_tick();
     }
 
     static void dispatch_input_data(uint32_t data)

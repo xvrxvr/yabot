@@ -24,7 +24,7 @@ end
 endtask
 
 
-task pulse(input width);
+task pulse(input integer width);
 begin
     set(~sig_out);
     #width;

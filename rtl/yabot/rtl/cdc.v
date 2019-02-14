@@ -16,6 +16,27 @@ always @(posedge clk)
 assign out_data = dly_reg[STAGES-1];
 
 endmodule
+
+module CDCSyncPulse #(parameter STAGES=2)
+(
+    input wire clk,
+    input wire in_data,
+    output wire out_data
+);
+
+wire d1;
+reg d2 = 0;
+
+CDCSync #(STAGES) cdc(clk, in_data, d1);
+
+always @(posedge clk)
+	d2 <= d1;
+	
+assign out_data = d1 & ~d2;
+
+endmodule
+
+
 /*
 module CDCSyncN #(parameter N=1, STAGES=2)
 (

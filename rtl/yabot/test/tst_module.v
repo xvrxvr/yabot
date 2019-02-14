@@ -24,6 +24,19 @@
 
 module tst_module;
 
+
+localparam ID_Nop = 0;
+
+localparam ID_Sonars = 1;
+localparam ID_Motor = 2;
+localparam ID_ADC = 3;
+localparam ID_Radio = 4;
+localparam ID_RemoteCtrl = 5;
+
+localparam ID_Servo = 13;
+localparam ID_OutGPIO = 14;
+localparam ID_PowerOff = 15;
+
 	// Inputs
 	reg clk = 0;
 	reg [1:0] bi_key = 0;
@@ -33,7 +46,7 @@ module tst_module;
 	wire jetson_spi_cs;
 	wire jetson_io20;
 	wire jetson_io19;
-	wire jetson_io11;
+	reg jetson_io11 = 0;
 	wire radio_mirq;
 	wire radio_sdo;
 	wire [7:0] rc;
@@ -122,7 +135,7 @@ module tst_module;
 		.motor2_inb(motor2_inb), 
 		.motor2_ina(motor2_ina), 
 		.motor2_pwm(motor2_pwm), 
-		.btn(btn), 
+		.btn(~btn), 
 		.ledp(ledp), 
 		.ledm(ledm), 
 		.xt_trig(xt_trig), 
@@ -158,10 +171,6 @@ module tst_module;
 		check_wire("amp_stby", amp_stby, 0);
 		check_wire("amp_mute", amp_mute, 0);
 		check_wire("pwr_off", pwr_off, 0);
-		check_wire("jetson_io20", jetson_io20, 0);
-		check_wire("jetson_io19", jetson_io19, 0);
-		check_wire("jetson_io11", jetson_io11, 0);
-		check_wire("jetson_io16", jetson_io16, 0);
 		check_wire("jetson_io9", jetson_io9, 0);
 		check_wire("jetson_io8", jetson_io8, 0);
 		check_wire("motor1_inb", motor1_inb, 0);
@@ -171,7 +180,30 @@ module tst_module;
 		
 		check_wire("ledp", ledp, 0);
 		check_wire("ledm", ledm, 0);
+
+//	.gpio_rd_cntreq(jetson_io11),
+
+			jetson.expect(ID_Nop, 28'ha00_0000);
+			jetson.send(ID_OutGPIO, 1);
+
+			#300;
+			check_wire("ledp", ledp, 1);
+
+			#40000;
+			jetson.expect(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
+
+			btn1.pulse(30500);
+			
+			#40000;
+			
+			jetson.expect(ID_Nop, 1);
+			jetson.expect(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
 		
+			
+			
 		$stop();
 	
 	end

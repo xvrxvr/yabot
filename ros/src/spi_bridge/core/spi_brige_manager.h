@@ -16,7 +16,7 @@ class SPIBrigeManager {
 
     std::deque<uint32_t> to_spi_data[1+total_latencies], from_spi_data;
     int channel_encoder[spi_integrator::TOTAL_SPI_DEVICES];
-    std::vector<uint32_t> spi_exchange, spi_exchange_int;
+    std::vector<uint32_t> spi_exchange_buffer, spi_exchange_int_buffer;
     std::thread overflow_thread;
     std::mutex overflow_queue_guard;
 
@@ -24,7 +24,7 @@ class SPIBrigeManager {
     int gpio_data_valid, gpio_almost_full, gpio_get_sizes, gpio_radio_int;
     uint8_t prev_gpio_get_sizes;
 
-    spi_ioc_transfer spi_xref, spi_xfer_int;
+    spi_ioc_transfer spi_xfer, spi_xfer_int;
 
     int status_register;
 
@@ -52,5 +52,5 @@ public:
         while(spi_exchange_loop(false)) {;}
     }
 
-    void on_data_arrived(uint32_t data, uint32 channel);
+    void on_data_arrived(uint32_t data, uint32_t channel);
 };

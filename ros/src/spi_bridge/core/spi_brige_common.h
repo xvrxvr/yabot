@@ -7,6 +7,8 @@
 #include <deque>
 #include <vector>
 #include <thread>
+#include <mutex>
+#include <fstream>
 
 constexpr int LOOP_RATE = 30; //processing frequency
 

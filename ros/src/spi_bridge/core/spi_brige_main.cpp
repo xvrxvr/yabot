@@ -1,4 +1,5 @@
 ﻿#include "spi_brige_common.h"
+#include "spi_brige_manager.h"
 
 int main(int argc, char **argv)
 {

@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <linux/types.h>
 #include <poll.h>
 
@@ -22,13 +24,13 @@ namespace spi_integrator {
 }
 
 
-SPIBrigeManager::SPIBrigeManager() : spi_exchange(SPI_QUEUE_SIZE), spi_exchange_int(SPI_INT_QUEUE_SIZE)
+SPIBrigeManager::SPIBrigeManager() : spi_exchange_buffer(SPI_QUEUE_SIZE), spi_exchange_int_buffer(SPI_INT_QUEUE_SIZE)
 {
     int idx=1;
     memset(channel_encoder, 0, sizeof(channel_encoder));
     for(auto& def: latencies) channel_encoder[def.dev] = idx++;
     status_register = -1;
-    gpio_handle = spi_handle = gpio_data_valid = gpio_almost_full = gpio_get_sizes = gpio_radio_int = -1;
+    spi_handle = gpio_data_valid = gpio_almost_full = gpio_get_sizes = gpio_radio_int = -1;
     prev_gpio_get_sizes = 0;
     hw_activate();
     overflow_thread = std::thread([this] {this->overflow_thread_handle();});
@@ -54,8 +56,16 @@ enum {
 
 constexpr int max_spi_freq = 20 * 1000 * 1000;  // 20 MHz
 
-#define CHK(code) ({auto err = (code); if (err<0) throw std::exception("SPI Error: " #code); err})
-#define IOCTL(id, val) CHK(mode=val, ::ioctl(spi_handle, id, &mode))
+class HWException: public std::exception {
+    const char* msg;
+public:
+    HWException(const char* m) : msg(m) {}
+
+    virtual const char* what() const noexcept {return msg;}
+};
+
+#define CHK(code) ({auto err = (code); if (err<0) throw HWException("SPI Error: " #code); err;})
+#define IOCTL(id, val) CHK((mode=val, ::ioctl(spi_handle, id, &mode)))
 
 void SPIBrigeManager::hw_activate()
 {
@@ -67,13 +77,13 @@ void SPIBrigeManager::hw_activate()
     IOCTL(SPI_IOC_WR_BITS_PER_WORD, 32);
     IOCTL(SPI_IOC_WR_MAX_SPEED_HZ, max_spi_freq);
 
-    memset(&xref, 0, sizeof(xref));
-	xref.speed_hz = max_spi_freq;
-	xref.bits_per_word = 32;
+    memset(&spi_xfer, 0, sizeof(spi_xfer));
+	spi_xfer.speed_hz = max_spi_freq;
+	spi_xfer.bits_per_word = 32;
 
-    spi_xfer_int = xref;
-    xref.rx_buf = (uint64_t)spi_exchange.data();
-    spi_xfer_int.rx_buf  = (uint64_t)spi_exchange_int.data();
+    spi_xfer_int = spi_xfer;
+    spi_xfer.rx_buf = (uint64_t)spi_exchange_buffer.data();
+    spi_xfer_int.rx_buf  = (uint64_t)spi_exchange_int_buffer.data();
     spi_xfer_int.len = SPI_INT_QUEUE_SIZE;
 
     gpio_data_valid  = open_gpio(GPIO_DATA_VALID, "in");
@@ -87,10 +97,10 @@ int SPIBrigeManager::open_gpio(int pin_idx, const char* setup, const char* int_e
 {
     auto base_path = "/sys/class/gpio/gpio" + std::to_string(pin_idx);
 
-    struct stat st;
+    struct ::stat st;
 
     // Check if /sys/class/gpio/gpio<pin_idx>/ exists 
-    if (stat(base_path.c_str(), &st) != -1)
+    if (::stat(base_path.c_str(), &st) != -1)
     {
         CHK(st.st_mode & S_IFDIR ? 0:-1);
     }
@@ -100,12 +110,12 @@ int SPIBrigeManager::open_gpio(int pin_idx, const char* setup, const char* int_e
         std::ofstream stream("/sys/class/gpio/export");
         stream.exceptions(std::ofstream::failbit);
         stream << pin_idx;
-        CHK(stat(base_path.c_str(), &st));
+        CHK(::stat(base_path.c_str(), &st));
     }
 
     base_path += "/";
 
-    auto write = [&] (char* dst, char* cmd) {
+    auto write = [&] (const char* dst, const char* cmd) {
         std::ofstream stream((base_path + dst).c_str());
         stream.exceptions(std::ofstream::failbit);
         stream << cmd;
@@ -115,7 +125,7 @@ int SPIBrigeManager::open_gpio(int pin_idx, const char* setup, const char* int_e
     write("direction", setup);
 
     // write <edge> (if not NULL) to /sys/class/gpio/gpio<pin_idx>/edge
-    if (edge) write("edge", edge);
+    if (int_edge) write("edge", int_edge);
 
     // open /sys/class/gpio/gpio<pin_idx>/value and return handle
     return CHK(::open((base_path + "value").c_str(), O_RDWR));
@@ -137,15 +147,15 @@ void SPIBrigeManager::hw_deactivate()
 void SPIBrigeManager::low_level_spi_exchange(int size, bool do_send)
 {
     flip_get_size();
-    xref.len = size;
-    xref.tx_buf = do_send ? (uint64_t)spi_exchange.data() : 0;
-    CHK(ioctl(spi_handle, SPI_IOC_MESSAGE(1), &xfer));
+    spi_xfer.len = size;
+    spi_xfer.tx_buf = do_send ? (uint64_t)spi_exchange_buffer.data() : 0;
+    CHK(ioctl(spi_handle, SPI_IOC_MESSAGE(1), &spi_xfer));
 }
 
 void SPIBrigeManager::low_level_spi_exchange_int()
 {
     flip_get_size();
-    CHK(ioctl(spi_handle, SPI_IOC_MESSAGE(1), &xfer_int));
+    CHK(ioctl(spi_handle, SPI_IOC_MESSAGE(1), &spi_xfer_int));
 }
 
 
@@ -187,12 +197,12 @@ void SPIBrigeManager::overflow_thread_handle()
         std::unique_lock<std::mutex> lock(overflow_queue_guard, std::try_to_lock);
         if (!lock) continue;
         low_level_spi_exchange_int();
-        from_spi_data.insert(from_spi_data.back(), spi_exchange_int.begin(), spi_exchange_int.end());
+        from_spi_data.insert(from_spi_data.end(), spi_exchange_int_buffer.begin(), spi_exchange_int_buffer.end());
     }
 
 }
 
-void SPIBrigeManager::on_data_arrived(uint32_t data, uint32 channel)
+void SPIBrigeManager::on_data_arrived(uint32_t data, uint32_t channel)
 {
     uint32_t data_and_channel = (data&0x0FFFFFFF) | (channel << 28);
     to_spi_data[channel_encoder[channel]].push_back(data_and_channel);
@@ -204,29 +214,29 @@ bool SPIBrigeManager::spi_exchange_loop(bool first_entry)
     int start = 0;
     int max = 0;
 
-    memset(spi_exchange.data(), 0, sizeof(uint32_t)*SPI_QUEUE_SIZE);
+    memset(spi_exchange_buffer.data(), 0, sizeof(uint32_t)*SPI_QUEUE_SIZE);
 
     for(auto& ref: latencies)
     {
         auto& queue = to_spi_data[idx++];
         int base = start++;
-        if (base>=spi_exchange.size()) break;
+        if (base>=spi_exchange_buffer.size()) break;
         while(!queue.empty())
         {
-            while(base<SPI_QUEUE_SIZE && spi_exchange[base]) ++base;
+            while(base<SPI_QUEUE_SIZE && spi_exchange_buffer[base]) ++base;
             if (base>=SPI_QUEUE_SIZE) break;
-            spi_exchange[base] = queue.front(); queue.pop_front();
+            spi_exchange_buffer[base] = queue.front(); queue.pop_front();
             if (base>max) max=base;
-            base += ref.letency;
+            base += ref.latency;
         }
     }
 
     while(!to_spi_data[0].empty())
     {
-        while(start<SPI_QUEUE_SIZE && spi_exchange[start]) ++start;
+        while(start<SPI_QUEUE_SIZE && spi_exchange_buffer[start]) ++start;
         if (start>=SPI_QUEUE_SIZE) break;
         if (start>max) max=start;
-        spi_exchange[start++] = to_spi_data[0].front(); to_spi_data[0].pop_front();
+        spi_exchange_buffer[start++] = to_spi_data[0].front(); to_spi_data[0].pop_front();
     }
 
     if (!start && !first_entry) return false;
@@ -247,7 +257,7 @@ bool SPIBrigeManager::spi_exchange_loop(bool first_entry)
         int counter_index = -1;
         for(idx = 0; idx < max; ++idx)
         {
-            uint32_t value = spi_exchange[idx];
+            uint32_t value = spi_exchange_buffer[idx];
             int channel = value >> 28;
             if (channel) spi_integrator::SPIDevInterface::dispatch_input_data(value); else
             {

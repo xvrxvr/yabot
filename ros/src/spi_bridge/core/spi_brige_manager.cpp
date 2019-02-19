@@ -24,6 +24,8 @@ namespace spi_integrator {
 }
 
 
+constexpr SPIBrigeManager::LatencyDef SPIBrigeManager::latencies[];
+
 SPIBrigeManager::SPIBrigeManager() : spi_exchange_buffer(SPI_QUEUE_SIZE), spi_exchange_int_buffer(SPI_INT_QUEUE_SIZE)
 {
     int idx=1;

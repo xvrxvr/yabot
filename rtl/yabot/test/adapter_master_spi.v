@@ -34,10 +34,13 @@ endtask
 task send(input integer index, input integer data);
     integer acc;
     integer i;
+	 realtime time_start;
+	 integer data2send;
 
     begin
-    $display("(%0t) Jetson: Send %h (%d)", $time, data, index);
-    spi_data_out = data | (index << 28);
+	 time_start = $realtime;
+	 data2send = data | (index << 28);
+    spi_data_out = data2send;
     spi_cs = 1'b0;
 	 acc = 0;
     #50;
@@ -54,10 +57,11 @@ task send(input integer index, input integer data);
 
     #50;
     spi_cs = 1'b1;
+	 #100;
 
+    $display("(%0t - %0t) Jetson: %h => [SPI] => %h", time_start, $realtime, data2send, acc);
     index = (acc >> 28) & 15;
     acc = acc & 32'h0FFFFFFF;
-    $display("(%0t) Jetson: Send done, recieved: %h (%d)", $time, acc, index);
 
     if (index==0 && !expected_queue.can_read(0))
     begin

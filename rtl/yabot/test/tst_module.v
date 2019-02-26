@@ -98,7 +98,7 @@ localparam ID_PowerOff = 15;
 
 	// Instantiate the Unit Under Test (UUT)
 	yabot_top uut (
-		.clk(clk), 
+		.clk_in(clk), 
 		.bi_led(bi_led), 
 		.bi_key(bi_key), 
 		.dac_flt(dac_flt), 
@@ -154,14 +154,17 @@ localparam ID_PowerOff = 15;
 		.serv(serv)
 	);
 
-	always #10 clk <= ~clk;
+	always begin
+		$timeformat ( -9,0," ns",15);
+		forever
+			#10 clk <= ~clk;
+	end
 
 	initial begin
-		$timeformat ( -9,0," ns",15);
 		// Initialize Inputs
 
 		// Wait 100 ns for global reset to finish
-		#100;
+		#500;
 		
 		// Add stimulus here
 
@@ -172,7 +175,7 @@ localparam ID_PowerOff = 15;
 		check_wire("amp_mute", amp_mute, 0);
 		check_wire("pwr_off", pwr_off, 0);
 		check_wire("jetson_io9", jetson_io9, 0);
-		check_wire("jetson_io8", jetson_io8, 0);
+		check_wire("jetson_io8", jetson_io8, 1);
 		check_wire("motor1_inb", motor1_inb, 0);
 		check_wire("motor1_ina", motor1_ina, 0);
 		check_wire("motor2_inb", motor2_inb, 0);
@@ -183,24 +186,30 @@ localparam ID_PowerOff = 15;
 
 //	.gpio_rd_cntreq(jetson_io11),
 
-			jetson.expect(ID_Nop, 28'ha00_0000);
-			jetson.send(ID_OutGPIO, 1);
+    		req_count(28'hC00_0000);
+			jetson.expect(ID_Nop, 28'h100_0000);
+         jetson.send(ID_OutGPIO, 1);
+    		jetson.send(ID_Nop, 0);
 
 			#300;
 			check_wire("ledp", ledp, 1);
 
 			#40000;
-			jetson.expect(ID_Nop, 0);
+    		req_count(28'hF00_0000);
+			jetson.expect(ID_Nop, 28'hB00_0000);
 			jetson.send(ID_Nop, 0);
+    		jetson.send(ID_Nop, 0);
 
 			btn1.pulse(30500);
 			
 			#40000;
 			
-			jetson.expect(ID_Nop, 1);
-			jetson.expect(ID_Nop, 0);
+    		req_count(28'hD00_0000);
+			jetson.expect(ID_Nop, 28'h100_0001);
+			jetson.expect(ID_Nop, 28'h100_0000);
 			jetson.send(ID_Nop, 0);
 			jetson.send(ID_Nop, 0);
+    		jetson.send(ID_Nop, 0);
 		
 			
 			
@@ -252,6 +261,14 @@ $display("(%0t) %s: %h", $time, name, bit_val);
 end
 endtask
 
+
+task req_count(input [27:0] data);
+begin
+    jetson_io11 <= ~jetson_io11;
+    #100;
+    jetson.expect(ID_Nop, data);
+end
+endtask
       
 endmodule
 

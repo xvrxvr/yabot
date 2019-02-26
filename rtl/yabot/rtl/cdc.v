@@ -1,14 +1,14 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module CDCSync #(parameter STAGES=2)
+module CDCSync #(parameter STAGES=2, DEF=0)
 (
     input wire clk,
     input wire in_data,
     output wire out_data
 );
 
-reg [STAGES-1:0] dly_reg = 0;
+reg [STAGES-1:0] dly_reg = DEF;
 
 always @(posedge clk)
 	dly_reg <= (dly_reg<<1) | in_data;
@@ -25,7 +25,7 @@ module CDCSyncPulse #(parameter STAGES=2)
 );
 
 wire d1;
-reg d2 = 0;
+reg d2 = 1'b1;
 
 CDCSync #(STAGES) cdc(clk, in_data, d1);
 

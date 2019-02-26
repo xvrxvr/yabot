@@ -78,7 +78,8 @@ reg outsel_stat_200 = 1'b0; // Select ShadowStatus+FifoCounter
 reg outsel_fifo_200 = 1'b0; // Select FIFO Data to output
 wire stb_stat_200 = (req_word_ff_200 ^ req_word_200) & spi_cs_200; // Strobe to latch 1 -> outsel_stat_200
 
-wire rd_en_200 = data_send_done_200 & ~outsel_fifo_200 & ~fifo_empty_200; // Allow read from FIFO
+wire rd_en_200 = data_send_done_200 & ~outsel_fifo_200 & ~fifo_empty_200; // Allow read from FIFO - turn on outsel_fifo
+wire rd_stb_200 = data_send_latched_200 & outsel_fifo_200; // We really read from FIFO - advance to next word
 
 // Shadow status register
 reg [10:0] shadow_status_reg_200 = 0; // Shadow Status register value
@@ -87,8 +88,8 @@ reg status_reg_ok_200 = 1'b0;
 // Output data path for SPI
 reg [12:0] shadow_cnt_reg_200 = 0; // Shadow FIFO Counter value
 wire [31:0] output_mux_200 = // Output data
-	outsel_stat_200 ? {4'b0, 1'b1, 1'b1, !outsel_fifo_200, status_reg_ok_200, shadow_cnt_reg_200, shadow_status_reg_200} :
-	outsel_fifo_200 ? fifo_data_200 : {4'b0, 1'b1, 1'b0, !outsel_fifo_200, status_reg_ok_200, shadow_cnt_reg_200, shadow_status_reg_200};
+	outsel_stat_200 ? {4'b0, 1'b1, 1'b1, fifo_empty_200, status_reg_ok_200, shadow_cnt_reg_200, shadow_status_reg_200} :
+	outsel_fifo_200 ? fifo_data_200 : {4'b0, 1'b1, 1'b0, fifo_empty_200, status_reg_ok_200, shadow_cnt_reg_200, shadow_status_reg_200};
 	
 reg [31:0] output_reg_200 = 0;
 
@@ -96,7 +97,7 @@ always @(posedge clk_200)
 	output_reg_200 <= output_mux_200;
 
 // Cross domain sync and clocks
-CDCSync sync_cs(clk_200, spi_cs, spi_cs_200);
+CDCSync #(.DEF(-1)) sync_cs(clk_200, spi_cs, spi_cs_200);
 CDCSync sync_req_word(clk_200, gpio_rd_cntreq, req_word_200);
 CDCSyncPulse sync_ds_done(clk_200, data_send_done, data_send_done_200);
 CDCSyncPulse sync_ds_latched(clk_200, data_send_latched, data_send_latched_200);
@@ -118,10 +119,10 @@ always @(posedge clk_200)
 // Manage FIFO read request
 always @(posedge clk_200)
 	if (rd_en_200)	outsel_fifo_200 <= 1'b1; else 
-	if (data_send_latched_200 & ~outsel_stat_200) outsel_fifo_200 <= 1'b0;
+	if (rd_stb_200) outsel_fifo_200 <= 1'b0;
 
 fifo32 core2spi_fifo(.wr_clk(clk), .rd_clk(clk_200), .din(wr_din), .wr_en(wr_en),
-  .rd_en(rd_en_200), .dout(fifo_data_200),
+  .rd_en(rd_stb_200), .dout(fifo_data_200),
   .full(), .empty(fifo_empty_200), .prog_full(gpio_rd_urgent),
   .rd_data_count(fifo_data_cnt_200)
 );
@@ -129,7 +130,7 @@ assign gpio_rd_valid = ~fifo_empty_200;
 
 // Manage Shadow status register
 always @(posedge clk_200)
-	if (rd_en_200 && fifo_data_200[31:28]==0)
+	if (rd_stb_200 && fifo_data_200[31:28]==0)
 	begin
 		shadow_status_reg_200 <= fifo_data_200[12:0];
 		status_reg_ok_200 <= 1'b1;
@@ -161,7 +162,7 @@ always @(negedge spi_clk)
 assign data_send_done = out_bits_cnt == 5'd30;
 
 always @(negedge spi_clk)
-	first_bit2 <= first_bit;
+	if (!spi_cs) first_bit2 <= first_bit;
 	
 assign data_send_latched = first_bit2;
 

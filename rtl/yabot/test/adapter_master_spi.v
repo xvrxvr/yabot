@@ -19,15 +19,9 @@ initial begin
 	spi_cs = 1'b1;
 end
 
-//genvar i;
-//generate for(i=0; i<16; i=i+1)
-//begin :block
 queue #(BUF_SIZE, 28) expected_queue();
-//end
-//endgenerate
 
 task expect(input integer index, input integer data);
-//    block[index].expected_queue.write(data);
     expected_queue.write(data, index);
 endtask
 
@@ -59,21 +53,32 @@ task send(input integer index, input integer data);
     spi_cs = 1'b1;
 	 #100;
 
-    $display("(%0t - %0t) Jetson: %h => [SPI] => %h", time_start, $realtime, data2send, acc);
+    $write("(%0t - %0t) Jetson: %h => [SPI] => %h", time_start, $realtime, data2send, acc);
     index = (acc >> 28) & 15;
     acc = acc & 32'h0FFFFFFF;
+	 
+	 if (index==0)
+	 begin
+		$write("      CTRL Decode: ");
+		if (acc[27]) $write("Shadow, ");
+		if (acc[26]) $write("CntReq, ");
+		if (acc[25]) $write("Empty, ");
+		if (acc[24]) $write("Valid, ");
+		$write("%0d words in FIFO", acc[23:11]);
+	 end
+    $display("");
 
     if (index==0 && !expected_queue.can_read(0))
     begin
         if (status_reg != acc)
         begin
-            $display("Error (%0t) Jetson SPI #0: Unexpected - shadow reg is %h, got %h",$time,status_reg,acc);
+            $display("Error (%0t) Jetson SPI #0: Unexpected - shadow reg is %0h, got %0h",$time,status_reg,acc);
             $stop();
         end
     end
     else if (!expected_queue.can_read(index))
     begin
-        $display("Error (%0t) Jetson SPI #%d: Underflow (got data %h)",$time,index,acc);
+        $display("Error (%0t) Jetson SPI #%d: Underflow (got data %0h)",$time,index,acc);
         $stop();
     end
     else
@@ -81,7 +86,7 @@ task send(input integer index, input integer data);
         i = expected_queue.read(index);
         if (i != acc)
         begin
-            $display("Error (%0t) Jetson SPI #%d: Unexpected - expected %h, got %h",$time,index,i,acc);
+            $display("Error (%0t) Jetson SPI #%0d: Unexpected - expected %0h, got %0h",$time,index,i,acc);
             $stop();
         end
     end

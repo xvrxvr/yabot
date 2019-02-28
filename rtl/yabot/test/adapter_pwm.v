@@ -11,7 +11,7 @@ event term;
 begin
     if (level != data)
     begin
-        $display("Error (%0t) %s PWM: Unexpected level (%d)", $time, NAME, data);
+        $display("Error (%0t) %s PWM: Unexpected level (%0d)", $time, NAME, data);
         $stop();                
     end
     fork
@@ -26,7 +26,7 @@ begin
             $stop();                
         end
     join
-    $display("(%0t) %s PWM: Level %d", $time, NAME, level);
+    $display("(%0t) %s PWM: Level %0d", $time, NAME, level);
 end
 endtask
 
@@ -43,10 +43,10 @@ begin
     val = (j-i)*100/(k-i);
     if (val < min_value || val > max_value)
     begin
-        $display("Error (%0t) %s PWM: Duty cycle value (%d) out of range (%d-%d)", $time, NAME, val, min_value, max_value);
+        $display("Error (%0t) %s PWM: Duty cycle value (%0d) out of range (%0d-%0d)", $time, NAME, val, min_value, max_value);
         $stop();                
     end
-    $display("(%0t) %s PWM: Duty cycle value = %d (%d-%d)", $time, NAME, val, min_value, max_value);
+    $display("(%0t) %s PWM: Duty cycle value = %0d (%0d-%0d)", $time, NAME, val, min_value, max_value);
 end
 endtask
 
@@ -60,10 +60,10 @@ begin
     val = (j-i);
     if (val < min_value || val > max_value)
     begin
-        $display("Error (%0t) %s PWM: Pulse value (%d) out of range (%d-%d)", $time, NAME, val, min_value, max_value);
+        $display("Error (%0t) %s PWM: Pulse value (%0d) out of range (%0d-%0d)", $time, NAME, val, min_value, max_value);
         $stop();                
     end
-    $display("(%0t) %s PWM: Pulse value = %d (%d-%d)", $time, NAME, val, min_value, max_value);
+    $display("(%0t) %s PWM: Pulse value = %0d (%0d-%0d)", $time, NAME, val, min_value, max_value);
 end
 endtask
 

@@ -40,13 +40,13 @@ always @(posedge clk)
 	
 always @(posedge clk)
 	if (pulse_end) begin out_value <= counter; out_rdy <= 1'b1; end else
-	if (counter == MAXV-1) begin out_rdy <= 1'b0; out_value <= 0; end
+	if (counter == MAXV-1 && pre_div_pulse) begin out_rdy <= 1'b0; out_value <= 0; end
 
 assign pulse_length = out_value;
 assign ready = out_rdy;
 
 always @(posedge clk)
-	if (pulse_end || counter == MAXV-1) out_strobe <= 1'b1;
+	if (pulse_end || (counter == MAXV-1 && pre_div_pulse)) out_strobe <= 1'b1;
 	else out_strobe <= 1'b0;
 
 endmodule

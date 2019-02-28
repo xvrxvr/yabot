@@ -32,7 +32,7 @@ always @(posedge clk)
 SPIMaster #(.DIV(5), .TO_SPI_BITS(6), .FROM_SPI_BITS(12)) adc(.clk(clk),
     .spi_miso(adc_do), .spi_mosi(adc_di), .spi_clk(adc_clk), .spi_cs(adc_cs),
     .stb_wr(in_wr), .stb_rdy(out_wr),
-    .to_spi_data({3'b010, in_data[2:0]}), . from_spi_data(data),
+    .to_spi_data({3'b011, in_data[2:0]}), . from_spi_data(data),
     .total_len(5'd18)
 );
 

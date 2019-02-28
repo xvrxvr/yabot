@@ -33,7 +33,8 @@ generate for(i=0; i<6; i=i+1)
 begin :body
     wire pulse_in;
     CDCSync cdc(clk, rc[i], pulse_in);
-    PulseMeasure #(50, 100000) pm(.clk(clk), .pulse_in(pulse_in), .pulse_length(data_bus[LEN*i +: LEN]), .ready(), .out_stb(rdy[i]));
+//!!!    PulseMeasure #(50, 100000) pm(.clk(clk), .pulse_in(pulse_in), .pulse_length(data_bus[LEN*i +: LEN]), .ready(), .out_stb(rdy[i]));
+    PulseMeasure #(50, 900) pm(.clk(clk), .pulse_in(pulse_in), .pulse_length(data_bus[LEN*i +: LEN]), .ready(), .out_stb(rdy[i]));
 end
 endgenerate
 

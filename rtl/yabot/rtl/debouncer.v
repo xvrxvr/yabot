@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-//module Debouncer #(parameter DELAY=1_500_000, MODE="LEVEL") 
+//!!! module Debouncer #(parameter DELAY=1_500_000, MODE="LEVEL") 
 module Debouncer #(parameter DELAY=1500, MODE="LEVEL") 
 (
     input wire clk,

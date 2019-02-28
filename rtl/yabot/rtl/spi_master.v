@@ -20,7 +20,7 @@ module SPIMaster #(parameter DIV=50, TO_SPI_BITS=8, FROM_SPI_BITS=8)
 );
 
 reg [TO_SPI_BITS-1:0] to_spi = 0;
-reg [(TO_SPI_BITS+FROM_SPI_BITS)-1:0] from_spi = 0;
+reg [FROM_SPI_BITS-1:0] from_spi = 0;
 wire clk_ff; // SPI 2CLK
 reg clk_out = 1'b0; // SPI clock
 reg cs = 1'b0; // SPI CS (reclocked to SPI SLK)
@@ -49,7 +49,7 @@ always @(posedge clk)
 // SPI CS
 always @(posedge clk)
     if (stb_wr) cs_raw <= 1'b1; else
-    if (!bit_counter) cs_raw <= 1'b0;
+    if (bit_counter == 1) cs_raw <= 1'b0;
 
 always @(posedge clk)
     if (clk_ff & clk_out) cs <= cs_raw; 
@@ -65,10 +65,10 @@ always @(posedge clk)
     else rdy <= 1'b0;
 
 // Output
-assign spi_clk = !cs & clk_out;
+assign spi_clk = cs & clk_out;
 assign spi_cs = !cs;
 assign spi_mosi = to_spi[TO_SPI_BITS-1];
-assign from_spi_data = from_spi[TO_SPI_BITS +: FROM_SPI_BITS];
+assign from_spi_data = from_spi;
 assign stb_rdy = rdy;
 
 endmodule

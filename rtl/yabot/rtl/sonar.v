@@ -23,6 +23,7 @@ module Sonar(
 wire [5:0] ll_triggers; // Trigger wires to HC04 low level blocks
 wire [5:0] ll_req; // Requests to send data back from HC04 low level blocks
 wire [(6*12-1) : 0] ll_data; // Data from HC04 low level blocks (packed in 6 12bits strings)
+reg  [5:0] ch_enable = 0; // Enable each separate channel
 
 // Generate 6 instancies of block
 genvar i;
@@ -39,10 +40,14 @@ endgenerate
 assign out_data[23:12] = 0;
 assign out_ctrl[3] = 0;
 
-ArbiterPulse #(.TOTAL(6), .WIDTH(12)) arbiter (.clk(clk), .rdy(ll_req), .bus_in(ll_data), .bus_out(out_data[11:0]), .out_stb(out_wr), .out_rdy(out_wr_rdy), .out_selected(out_ctrl[2:0]), .busy());
+ArbiterPulse #(.TOTAL(6), .WIDTH(12)) arbiter (.clk(clk), .rdy(ll_req & ch_enable), .bus_in(ll_data), .bus_out(out_data[11:0]), .out_stb(out_wr), .out_rdy(out_wr_rdy), .out_selected(out_ctrl[2:0]), .busy());
 
 // Only single mesure implemented for now
 assign ll_triggers = in_wr ? in_data[5:0] : 6'b0;
+
+always @(posedge clk)
+	if (in_wr) ch_enable <= in_data[5:0];
+	
 
 endmodule
 
@@ -71,8 +76,6 @@ always @(posedge clk)
 	
 wire hc04_e;
 CDCSync cdc(clk, hc04_echo, hc04_e);
-
-wire data_r;
 
 PulseMeasure #(.PREDIV(5), .MAXV(4096)) pm(.clk(clk), .pulse_in(hc04_e), .pulse_length(data), .ready(), .out_stb(data_rdy));
 

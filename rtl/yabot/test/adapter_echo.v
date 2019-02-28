@@ -17,7 +17,7 @@ begin
     @(negedge hc04_trigger);
     if ($time-start < 10000)
     begin
-        $display("Error (%0t) %s Echo: Strobe too short (%d)", $time, NAME, $time-start);
+        $display("Error (%0t) %s Echo: Strobe too short (%0d)", $time, NAME, $time-start);
         $stop();                
     end
     #1000;

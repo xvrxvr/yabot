@@ -30,7 +30,7 @@ begin
     out_reg = out_patterns[cur_pattern];
     inp_reg = 0;
 
-    $display("(%0t) %s SPI: Started (%h)", $time, NAME, out_reg);
+    $display("(%0t) %s SPI: Started (%0h)", $time, NAME, out_reg);
 
     while (~spi_cs)
     begin
@@ -43,15 +43,15 @@ begin
             i = i + 1;
         end
     end
-    $display("(%0t) %s SPI: Got %h (in %d bits)", $time, NAME, inp_reg, i);
+    $display("(%0t) %s SPI: Got %0h (in %0d bits)", $time, NAME, inp_reg, i);
     if (i != pat_width[cur_pattern])
     begin
-        $display("Error (%0t) %s SPI: Wrong bit length of data - got %d, expected %d", $time, NAME, i, pat_width[cur_pattern]);
+        $display("Error (%0t) %s SPI: Wrong bit length of data - got %0d, expected %0d", $time, NAME, i, pat_width[cur_pattern]);
         $stop();        
     end
     if (inp_reg != inp_patterns[cur_pattern])
     begin
-        $display("Error (%0t) %s SPI: Wrong recieved data - got %h, expected %h", $time, NAME, inp_reg, inp_patterns[cur_pattern]);
+        $display("Error (%0t) %s SPI: Wrong recieved data - got %0h, expected %0h", $time, NAME, inp_reg, inp_patterns[cur_pattern]);
         $stop();        
     end
     cur_pattern = (cur_pattern + 1) % total_patterns;

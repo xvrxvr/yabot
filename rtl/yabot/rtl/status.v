@@ -31,11 +31,11 @@ always @(posedge clk)
     data_latch <= data;
 
 wire stb = data_latch != data;
-wire force_stb;
+// wire force_stb;
 
-Divider #(5000000) div(clk, stb, force_stb);
+// Divider #(5000000) div(clk, stb, force_stb);
 
-assign out_wr = stb | force_stb;
+assign out_wr = stb /*| force_stb*/;
 
 endmodule
 `default_nettype wire 

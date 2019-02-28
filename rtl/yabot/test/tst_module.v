@@ -25,6 +25,9 @@
 module tst_module;
 
 
+`define MKS *1000
+`define MS *1000000
+
 localparam ID_Nop = 0;
 
 localparam ID_Sonars = 1;
@@ -194,15 +197,15 @@ localparam ID_PowerOff = 15;
 			#300;
 			check_wire("ledp", ledp, 1);
 
-			#40000;
+			# (40 `MKS);
     		req_count(28'hF00_0000);
 			jetson.expect(ID_Nop, 28'hB00_0000);
 			jetson.send(ID_Nop, 0);
     		jetson.send(ID_Nop, 0);
 
-			btn1.pulse(30500);
+			btn1.pulse(30 `MKS + 500);
 			
-			#40000;
+			# (40 `MKS);
 			
     		req_count(28'hD00_0000);
 			jetson.expect(ID_Nop, 28'h100_0001);
@@ -211,6 +214,42 @@ localparam ID_PowerOff = 15;
 			jetson.send(ID_Nop, 0);
     		jetson.send(ID_Nop, 0);
 		
+
+			// ADC
+			spi_adc.expect(18'b011010_000000000000, 18'b000000_000000000101, 18);
+			req_count(28'hF00_0000);
+			jetson.expect(ID_Nop, 28'hB00_0000);
+			jetson.expect(ID_ADC, 28'h002_0005);
+			jetson.send(ID_ADC, 2);
+			#200;
+			jetson.send(ID_Nop, 0);
+			#200;
+			jetson.send(ID_Nop, 0);
+			
+			// RC
+			jetson.expect(ID_Nop, 28'hB00_0000);
+			jetson.send(ID_RemoteCtrl, 3);
+			rc_gen0.run_pulses(150 `MKS + 100, 200 `MKS, 1);
+			# (5 `MKS);
+			req_count(28'hD00_0000);
+			jetson.expect(ID_RemoteCtrl, 28'h000_0096); // 150
+			jetson.send(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
+			# (1 `MS);
+			req_count(28'hD00_0000);
+			jetson.expect(ID_RemoteCtrl, 28'h100_0000);
+			jetson.send(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
+			
+			
+			// Sonar
+			
+			// Servo
+			
+			// Motor + PPR
+						
+			// Radio
+			
 			
 			
 		$stop();
@@ -224,9 +263,10 @@ adapter_btn #("BTN4") btn4 (btn[3]);
 
 adapter_echo #("XT") echo_xt(xt_echo, xt_trig);
 adapter_echo #("XR1") echo_xr1(xr1_echo, xr1_trig);
-adapter_echo #("XR23") echo_xr23(xr12_echo, xr12_trig);
+adapter_echo #("XR23") echo_xr23(xr23_echo, xr23_trig);
 adapter_echo #("XB") echo_xb(xb_echo, xw_trig);
 adapter_echo #("XL12") echo_xl12(xl12_echo, xl12_trig);
+adapter_echo #("XL3") echo_xl3(xl3_echo, xl3_trig);
 
 assign al3_echo = 1'b0;
 
@@ -238,7 +278,7 @@ adapter_pwm #("MOTOR1") motor1(motor1_pwm);
 adapter_pwm #("MOTOR2") motor2(motor2_pwm);
 
 adapter_slave_spi #("RADIO", 32) spi_radio(radio_sclk, radio_sdi, radio_sdo, radio_msel);
-adapter_slave_spi #("ADC", 16) spi_adc(adc_clk, adc_di, adc_do, adc_cs);
+adapter_slave_spi #("ADC", 18) spi_adc(adc_clk, adc_di, adc_do, adc_cs);
 
 pgen_adapter #("RC1") rc_gen0(rc[0]);
 pgen_adapter #("RC2") rc_gen1(rc[1]);
@@ -254,10 +294,10 @@ task check_wire(input [87:0] name, input bit_val, input org_val);
 begin
 if (bit_val!==org_val)
 begin
-	$display("Error (%0t) %s: Wrong value %h (%h expected)", $time, name, bit_val, org_val);
+	$display("Error (%0t) %s: Wrong value %0h (%0h expected)", $time, name, bit_val, org_val);
 	$stop();
 end
-$display("(%0t) %s: %h", $time, name, bit_val);
+$display("(%0t) %s: %0h", $time, name, bit_val);
 end
 endtask
 

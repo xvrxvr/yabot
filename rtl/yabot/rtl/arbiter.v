@@ -15,7 +15,7 @@ module ArbiterPulse #(parameter TOTAL=1, WIDTH=1)
 
 reg [TOTAL*WIDTH-1:0] common_latch = 0; // Registers to latch bus_in values
 reg [TOTAL-1:0] reg_latched = 0;        // Registers to latch requests (from rdy bus)
-reg [$clog2(TOTAL)-1:0] selected;       // Latch from priority encoder
+reg [$clog2(TOTAL)-1:0] selected = 0;   // Latch from priority encoder
 reg selected_some = 1'b0;               // Is something selected ?
 
 assign out_selected = selected;

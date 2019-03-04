@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module adapter_echo #(parameter NAME="", DELAY=10)
+module adapter_echo #(parameter NAME="", DELAY=1000)
 (
    output wire hc04_echo,
    input wire hc04_trigger

@@ -89,7 +89,7 @@ reg status_reg_ok_200 = 1'b0;
 reg [12:0] shadow_cnt_reg_200 = 0; // Shadow FIFO Counter value
 wire [31:0] output_mux_200 = // Output data
 	outsel_stat_200 ? {4'b0, 1'b1, 1'b1, fifo_empty_200, status_reg_ok_200, shadow_cnt_reg_200, shadow_status_reg_200} :
-	outsel_fifo_200 ? fifo_data_200 : {4'b0, 1'b1, 1'b0, fifo_empty_200, status_reg_ok_200, shadow_cnt_reg_200, shadow_status_reg_200};
+	outsel_fifo_200 ? fifo_data_200 : {4'b0, 1'b1, 1'b0, fifo_empty_200, status_reg_ok_200, 13'b0, shadow_status_reg_200};
 	
 reg [31:0] output_reg_200 = 0;
 

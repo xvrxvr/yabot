@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
 
+`default_nettype none
+
 ////////////////////////////////////////////////////////////////////////////////
 // Company: 
 // Engineer:
@@ -235,16 +237,46 @@ localparam ID_PowerOff = 15;
 			jetson.expect(ID_RemoteCtrl, 28'h000_0096); // 150
 			jetson.send(ID_Nop, 0);
 			jetson.send(ID_Nop, 0);
-			# (1 `MS);
-			req_count(28'hD00_0000);
-			jetson.expect(ID_RemoteCtrl, 28'h100_0000);
-			jetson.send(ID_Nop, 0);
-			jetson.send(ID_Nop, 0);
+//			# (1 `MS);
+//			req_count(28'hD00_0000);
+//			jetson.expect(ID_RemoteCtrl, 28'h100_0000);
+//			jetson.send(ID_Nop, 0);
+//			jetson.send(ID_Nop, 0);
+			jetson.expect(ID_Nop, 28'hB00_0000);
+			jetson.send(ID_RemoteCtrl, 0);
+			#100;
 			
 			
 			// Sonar
-			
+			req_count(28'hF00_0000);
+			#100;
+			jetson.send(ID_Sonars, 63);
+			# (100 `MKS);
+			req_count(28'hD00_2000);
+			jetson.send(ID_Nop, 0);			
+			jetson.expect(ID_Sonars, 28'h500_0009);
+			jetson.expect(ID_Sonars, 28'h400_0009);
+			jetson.expect(ID_Sonars, 28'h300_0009);
+			jetson.expect(ID_Sonars, 28'h200_0009);
+			jetson.expect(ID_Sonars, 28'h100_0009);
+			jetson.expect(ID_Sonars, 28'h000_0009);
+			jetson.send(ID_Sonars, 0);
+			jetson.send(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
+
 			// Servo
+			req_count(28'hF00_0000);
+			jetson.send(ID_Servo, 28'h0_00A_00A);
+			#200;
+			srv1.check_pulse(10 `MKS - 100, 10 `MKS + 100);
+			srv2.check_pulse(10 `MKS - 100, 10 `MKS + 100);
+			jetson.expect(ID_Nop, 28'hB00_0000);
+			jetson.send(ID_Servo, 28'h0_00A_000);
+			srv1.check_level(0);
+			srv2.check_pulse(10 `MKS - 100, 10 `MKS + 100);
 			
 			// Motor + PPR
 						
@@ -264,11 +296,9 @@ adapter_btn #("BTN4") btn4 (btn[3]);
 adapter_echo #("XT") echo_xt(xt_echo, xt_trig);
 adapter_echo #("XR1") echo_xr1(xr1_echo, xr1_trig);
 adapter_echo #("XR23") echo_xr23(xr23_echo, xr23_trig);
-adapter_echo #("XB") echo_xb(xb_echo, xw_trig);
+adapter_echo #("XB") echo_xb(xb_echo, xb_trig);
 adapter_echo #("XL12") echo_xl12(xl12_echo, xl12_trig);
 adapter_echo #("XL3") echo_xl3(xl3_echo, xl3_trig);
-
-assign al3_echo = 1'b0;
 
 adapter_master_spi jetson(jetson_spi_clk,jetson_spi_mosi,jetson_spi_miso,jetson_spi_cs);
 

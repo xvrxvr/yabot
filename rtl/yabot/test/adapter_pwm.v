@@ -1,13 +1,12 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module adapter_pwm #(parameter NAME="", TIME=10000)
+module adapter_pwm #(parameter NAME="", TIME=100_0000)
 (
     input wire data
 );
 
 task check_level(input level);
-event term;
 begin
     if (level != data)
     begin
@@ -15,16 +14,16 @@ begin
         $stop();                
     end
     fork
-    begin
+    begin :tout
         #TIME;
-        -> term;
+        disable norm;
     end
-    @(data or term)
-        if (term)
-        begin
-            $display("Error (%0t) %s PWM: Not stable", $time, NAME);
-            $stop();                
-        end
+    begin :norm
+        @(data);
+        $display("Error (%0t) %s PWM: Not stable", $time, NAME);
+        disable tout;
+        $stop();                
+    end
     join
     $display("(%0t) %s PWM: Level %0d", $time, NAME, level);
 end
@@ -34,12 +33,23 @@ endtask
 task check_pwm(input integer min_value, input integer max_value);
 integer i, j, k, val;
 begin
-    @(posedge data);
-    i = $time;
-    @(negedge data);
-    j = $time;
-    @(posedge data);
-    k = $time;
+    fork
+    begin :norm
+        @(posedge data);
+        i = $time;
+        @(negedge data);
+        j = $time;
+        @(posedge data);
+        k = $time;
+        disable tout;
+    end
+    begin :tout
+        # (TIME*4);
+        $display("Error (%0t) %s PWM: Timeout (data is %0d)", $time, NAME, data);
+        disable norm;
+        $stop();                
+    end
+    join
     val = (j-i)*100/(k-i);
     if (val < min_value || val > max_value)
     begin
@@ -53,10 +63,21 @@ endtask
 task check_pulse(input integer min_value, input integer max_value);
 integer i, j, val;
 begin
-    @(posedge data);
-    i = $time;
-    @(negedge data);
-    j = $time;
+    fork
+    begin :norm
+        @(posedge data);
+        i = $time;
+        @(negedge data);
+        j = $time;
+        disable tout;
+    end
+    begin :tout
+        # (TIME*4);
+        $display("Error (%0t) %s PWM: Timeout (data is %0d)", $time, NAME, data);
+        disable norm;
+        $stop();                
+    end
+    join
     val = (j-i);
     if (val < min_value || val > max_value)
     begin

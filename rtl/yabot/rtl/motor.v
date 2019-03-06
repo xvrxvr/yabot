@@ -38,13 +38,18 @@ reg [23:0] out_data_reg = 0; // Latch here output data
 reg [3:0] out_tag = 0; // Latch here output 'ctrl' field
 reg out_data_filled = 1'b0;
 
+reg out_wr_reg = 0;
+
 assign out_data = out_data_reg;
 assign out_ctrl = out_tag;
+assign out_wr = out_wr_reg;
 
 wire [1:0] ppr; // ppr_sence after debouncer
 
-Debouncer #(.DELAY(50000), .MODE("POSEDGE")) deb1(clk, ppr_sence[0], ppr[0]);
-Debouncer #(.DELAY(50000), .MODE("POSEDGE")) deb2(clk, ppr_sence[1], ppr[1]);
+//!!! Debouncer #(.DELAY(50000), .MODE("POSEDGE")) deb1(clk, ppr_sence[0], ppr[0]);
+//!!! Debouncer #(.DELAY(50000), .MODE("POSEDGE")) deb2(clk, ppr_sence[1], ppr[1]);
+Debouncer #(.DELAY(5), .MODE("POSEDGE")) deb1(clk, ppr_sence[0], ppr[0]);
+Debouncer #(.DELAY(5), .MODE("POSEDGE")) deb2(clk, ppr_sence[1], ppr[1]);
 
 // Distance counters
 always @(posedge clk)
@@ -56,10 +61,13 @@ always @(posedge clk)
     if (ppr[1]) ppr_2 <= ppr_2 + 1'b1;
 
 // Send accumulated counters to read channel
-assign out_wr = in_wr || ppr_1 == 12'hFFF || ppr_2 == 12'hFFF;
+wire out_wr_int = in_wr || ppr_1 == 12'hFFF || ppr_2 == 12'hFFF;
 
 always @(posedge clk)
-    if (out_wr) begin
+	out_wr_reg <= out_wr_int;
+	
+always @(posedge clk)
+    if (out_wr_int) begin
         out_data_reg <= {ppr_2, ppr_1};
         out_tag <= in_wr ? in_tag : 4'hF;
     end

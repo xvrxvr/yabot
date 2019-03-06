@@ -279,10 +279,35 @@ localparam ID_PowerOff = 15;
 			srv2.check_pulse(10 `MKS - 100, 10 `MKS + 100);
 			
 			// Motor + PPR
+			req_count(28'hF00_0000);			
+			jetson.send(ID_Motor, 28'h1_8FF_4FF);
+			#200;
+			fork
+				check_wire("motor1_inb", motor1_inb, 1);
+				check_wire("motor1_ina", motor1_ina, 0);
+				check_wire("motor2_inb", motor2_inb, 0);
+				check_wire("motor2_ina", motor2_ina, 1);
+				ppr_gen1.run_pulses(1 `MKS, 2 `MKS, 10);
+				ppr_gen2.run_pulses(1 `MKS, 2 `MKS, 20);
+				motor1.check_pwm(61,63);
+				motor2.check_pwm(11,13);
+			join
+			#200;
+			req_count(28'hD00_0000);			
+			jetson.expect(ID_Motor, 28'h0_000_000);
+			jetson.send(ID_Nop, 0);
+			jetson.send(ID_Motor, 28'h2_000_000);
+			#200;
+			req_count(28'hD00_0800);			
+			jetson.expect(ID_Motor, 28'h1_014_00A);
+			jetson.send(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
+			
 						
 			// Radio
 			
 			
+			// PWR off
 			
 		$stop();
 	

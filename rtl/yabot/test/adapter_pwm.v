@@ -31,7 +31,7 @@ endtask
 
 
 task check_pwm(input integer min_value, input integer max_value);
-integer i, j, k, val;
+realtime i, j, k, val;
 begin
     fork
     begin :norm

@@ -54,7 +54,7 @@ begin
         $display("Error (%0t) %s SPI: Wrong recieved data - got %0h, expected %0h", $time, NAME, inp_reg, inp_patterns[cur_pattern]);
         $stop();        
     end
-    cur_pattern = (cur_pattern + 1) % total_patterns;
+    cur_pattern = cur_pattern + 1;
 end
 
 task expect(input [MAX_WIDTH-1:0] inp_pat, input [MAX_WIDTH-1:0] out_pat, input integer len);

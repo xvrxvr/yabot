@@ -305,6 +305,61 @@ localparam ID_PowerOff = 15;
 			
 						
 			// Radio
+			req_count(28'hF00_0000);
+			spi_radio.expect(32'h0000_55AA, 32'h1234_5678, 16);
+			jetson.send(ID_Radio, 28'h1_55_AA_00);
+			#400;
+			req_count(28'hF00_0000);
+			jetson.expect(ID_Radio, 28'h0_00_12_34);
+			jetson.send(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
+
+			req_count(28'hF00_0000);
+			spi_radio.expect(32'h0000_55AA, 32'h1234_5678, 16);
+			jetson.send(ID_Radio, 28'h0_55_AA_00);
+			#400;
+			req_count(28'hF00_0000);
+			jetson.expect(ID_Nop, 28'hB_00_00_00);
+			jetson.send(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
+			
+
+			req_count(28'hF00_0000);
+			spi_radio.expect(32'h005A5AEE, 32'h9ABC_DEF0, 24);
+			jetson.send(ID_Radio, 28'h3_5A_5A_EE);
+			#800;
+			req_count(28'hF00_0000);
+			jetson.expect(ID_Radio, 28'h0_9A_BC_DE);
+			jetson.send(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
+
+			req_count(28'hF00_0000);
+			spi_radio.expect(32'h005A5AEE, 32'h9ABC_DEF0, 24);
+			jetson.send(ID_Radio, 28'h2_5A_5A_EE);
+			#800;
+			req_count(28'hF00_0000);
+			jetson.expect(ID_Nop, 28'hB_00_00_00);
+			jetson.send(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
+
+
+			req_count(28'hF00_0000);
+			spi_radio.expect(32'hDEAD_BE00, 32'h1020_3040, 32);
+			jetson.send(ID_Radio, 28'h5_DE_AD_BE);
+			#1200;
+			req_count(28'hF00_0000);
+			jetson.expect(ID_Radio, 28'h0_20_30_40);
+			jetson.send(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
+
+			req_count(28'hF00_0000);
+			spi_radio.expect(32'hDEAD_BE00, 32'h1020_3040, 32);
+			jetson.send(ID_Radio, 28'h4_DE_AD_BE);
+			#1200;
+			req_count(28'hF00_0000);
+			jetson.expect(ID_Nop, 28'hB_00_00_00);
+			jetson.send(ID_Nop, 0);
+			jetson.send(ID_Nop, 0);
 			
 			
 			// PWR off

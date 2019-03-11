@@ -62,15 +62,18 @@ reg stb_out = 0;
 reg [3:0] ctl_img = 0;
 
 wire [11:0] data;
+wire stb_wr;
+
+assign out_wr = stb_wr & ctl_img[0];
 
 always @(posedge clk)
     if (in_wr) ctl_img <= in_ctrl;
 
 SPIMaster #(.DIV(5), .TO_SPI_BITS(24), .FROM_SPI_BITS(24)) radio(.clk(clk),
     .spi_miso(radio_do), .spi_mosi(radio_di), .spi_clk(radio_clk), .spi_cs(radio_cs),
-    .stb_wr(in_wr), .stb_rdy(out_wr),
+    .stb_wr(in_wr), .stb_rdy(stb_wr),
     .to_spi_data(in_data), . from_spi_data(out_data),
-    .total_len( {ctl_img[2], ~ctl_img[2], ctl_img[1], 3'b0})
+    .total_len( {in_ctrl[2], ~in_ctrl[2], in_ctrl[1], 3'b0})
 );
 
 endmodule

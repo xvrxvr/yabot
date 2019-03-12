@@ -226,7 +226,12 @@ bool SPIBrigeManager::spi_exchange_loop(bool first_entry)
     std::copy_n(first, counter, spi_exchange_buffer.begin());
     to_spi_data.erase(first, first + counter);
 
-    if (!counter && !first_entry) return false;
+    if (!counter)
+    {
+        if (!first_entry) return false;
+        counter = 16;
+        std::fill_n(spi_exchange_buffer.begin(), counter, 0);
+    }
     low_level_spi_exchange(counter, true);
 
     int new_status_register = status_register;

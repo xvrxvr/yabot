@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-`default_nettype none
+`include "common.vh"
 
 module PulseWidthModulator #(parameter PREDIV=2, TOP=1024)
 (

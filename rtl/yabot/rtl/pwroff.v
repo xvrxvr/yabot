@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-`default_nettype none
+`include "common.vh"
 
 module PowerOff(
     input wire clk,
@@ -17,7 +17,11 @@ wire stb;
 
 assign pwr_off = power_off;
 
+`ifdef SIN
 Divider #(5000000) div(clk, 1'b0, stb);
+`else
+Divider #(50) div(clk, 1'b0, stb);
+`endif
 
 always @(posedge clk)
     if (in_wr) downcounter <= in_data[15:0]; else

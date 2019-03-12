@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-`default_nettype none
+`include "common.vh"
 
 module Status(
     input wire clk,
@@ -30,12 +30,7 @@ Debouncer deb3(clk, locks[1], data[5]);
 always @(posedge clk)
     data_latch <= data;
 
-wire stb = data_latch != data;
-// wire force_stb;
-
-// Divider #(5000000) div(clk, stb, force_stb);
-
-assign out_wr = stb /*| force_stb*/;
+assign out_wr = data_latch != data;
 
 endmodule
 `default_nettype wire 

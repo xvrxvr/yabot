@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-`default_nettype none
+`include "common.vh"
 
 module SPIMaster #(parameter DIV=50, TO_SPI_BITS=8, FROM_SPI_BITS=8)
 (

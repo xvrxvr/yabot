@@ -1,8 +1,11 @@
 `timescale 1ns / 1ps
-`default_nettype none
+`include "common.vh"
 
-//!!! module Debouncer #(parameter DELAY=1_500_000, MODE="LEVEL") 
+`ifdef SIN
+module Debouncer #(parameter DELAY=1_500_000, MODE="LEVEL")
+`else
 module Debouncer #(parameter DELAY=1500, MODE="LEVEL") 
+`endif
 (
     input wire clk,
     input wire in_data,

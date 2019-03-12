@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-`default_nettype none
+`include "common.vh"
 
 module PulseMeasure #(parameter PREDIV=2, MAXV=1024)
 (

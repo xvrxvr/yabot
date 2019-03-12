@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-`default_nettype none
+`include "common.vh"
 
 module Motor(
     input wire clk,
@@ -46,10 +46,13 @@ assign out_wr = out_wr_reg;
 
 wire [1:0] ppr; // ppr_sence after debouncer
 
-//!!! Debouncer #(.DELAY(50000), .MODE("POSEDGE")) deb1(clk, ppr_sence[0], ppr[0]);
-//!!! Debouncer #(.DELAY(50000), .MODE("POSEDGE")) deb2(clk, ppr_sence[1], ppr[1]);
+`ifdef SIN
+Debouncer #(.DELAY(50000), .MODE("POSEDGE")) deb1(clk, ppr_sence[0], ppr[0]);
+Debouncer #(.DELAY(50000), .MODE("POSEDGE")) deb2(clk, ppr_sence[1], ppr[1]);
+`else
 Debouncer #(.DELAY(5), .MODE("POSEDGE")) deb1(clk, ppr_sence[0], ppr[0]);
 Debouncer #(.DELAY(5), .MODE("POSEDGE")) deb2(clk, ppr_sence[1], ppr[1]);
+`endif
 
 // Distance counters
 always @(posedge clk)

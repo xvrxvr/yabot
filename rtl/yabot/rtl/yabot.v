@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-`default_nettype none
+`include "common.vh"
 
 `define INOUT input
 
@@ -21,8 +21,8 @@ module yabot_top(
     input wire jetson_spi_clk,
     input wire jetson_spi_cs,
     // Universal GPIO
-    output wire jetson_io20,
-    output wire jetson_io19,
+    `INOUT wire jetson_io20,
+    `INOUT wire jetson_io19,
     input wire jetson_io11,
     // Output only GPIO
     output wire jetson_io16,
@@ -95,6 +95,7 @@ wire clk;
 
 dcm dcm200(clk_in, clk_200, clk);
 
+assign bi_led = 0;
 
 // Jetson -> core buses
 wire [3:0]  wr_addr;

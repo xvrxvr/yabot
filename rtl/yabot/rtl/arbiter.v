@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-`default_nettype none
+`include "common.vh"
 
 module ArbiterPulse #(parameter TOTAL=1, WIDTH=1)
 (

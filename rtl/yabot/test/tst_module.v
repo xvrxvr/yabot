@@ -363,6 +363,16 @@ localparam ID_PowerOff = 15;
 			
 			
 			// PWR off
+			check_wire("PWR OFF", pwr_off, 0);
+			jetson.expect(ID_Nop, 28'hB_00_00_00);
+			jetson.send(ID_PowerOff, 2);
+			#900;
+			check_wire("PWR OFF", pwr_off, 0);
+			jetson.expect(ID_Nop, 28'hB_00_00_00);
+			jetson.send(ID_PowerOff, 2);
+			#1100;
+			check_wire("PWR OFF", pwr_off, 1);
+			
 			
 		$stop();
 	

@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-`default_nettype none
+`include "common.vh"
 
 module CDCSync #(parameter STAGES=2, DEF=0)
 (
@@ -26,13 +26,17 @@ module CDCSyncPulse #(parameter STAGES=2)
 
 wire d1;
 reg d2 = 1'b1;
+reg out_d = 1'b0;
 
 CDCSync #(STAGES) cdc(clk, in_data, d1);
 
 always @(posedge clk)
 	d2 <= d1;
-	
-assign out_data = d1 & ~d2;
+
+always @(posedge clk)
+    out_d <= d1 & ~d2;
+
+assign out_data = out_d;
 
 endmodule
 

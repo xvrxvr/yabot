@@ -4,18 +4,8 @@
 #include "spi_integrator.h"
 
 class SPIBrigeManager {
-    struct LatencyDef {
-        spi_integrator::SpiDevices dev;
-        int latency;
-    };
-    constexpr static LatencyDef latencies[]={
-        {spi_integrator::SD_ADC, 3}, 
-        {spi_integrator::SD_Radio, 3}
-    };
-    constexpr static int total_latencies  = sizeof(latencies)/sizeof(latencies[0]);
-
-    std::deque<uint32_t> to_spi_data[1+total_latencies], from_spi_data;
-    int channel_encoder[spi_integrator::TOTAL_SPI_DEVICES];
+    std::deque<uint32_t> to_spi_data, from_spi_data;
+    int channel_latency[spi_integrator::TOTAL_SPI_DEVICES];
     std::vector<uint32_t> spi_exchange_buffer, spi_exchange_int_buffer;
     std::thread overflow_thread;
     std::mutex overflow_queue_guard;

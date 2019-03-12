@@ -12,6 +12,16 @@
 
 #define SPI_FILE "/dev/spidev0.0"  // <Bus>.<CS>
 
+struct LatencyDef {
+    spi_integrator::SpiDevices dev;
+    int latency;
+};
+
+constexpr static LatencyDef latencies[]={
+    {spi_integrator::SD_ADC, 3}, 
+    {spi_integrator::SD_Radio, 3}
+};
+
 static SPIBrigeManager* root;
 
 namespace spi_integrator {
@@ -23,14 +33,10 @@ namespace spi_integrator {
     }
 }
 
-
-constexpr SPIBrigeManager::LatencyDef SPIBrigeManager::latencies[];
-
 SPIBrigeManager::SPIBrigeManager() : spi_exchange_buffer(SPI_QUEUE_SIZE), spi_exchange_int_buffer(SPI_INT_QUEUE_SIZE)
 {
-    int idx=1;
-    memset(channel_encoder, 0, sizeof(channel_encoder));
-    for(auto& def: latencies) channel_encoder[def.dev] = idx++;
+    memset(channel_latency, 0, sizeof(channel_latency));
+    for(auto& def: latencies) channel_latency[def.dev] = def.latency;
     status_register = -1;
     spi_handle = gpio_data_valid = gpio_almost_full = gpio_get_sizes = gpio_radio_int = -1;
     prev_gpio_get_sizes = 0;
@@ -207,42 +213,21 @@ void SPIBrigeManager::overflow_thread_handle()
 void SPIBrigeManager::on_data_arrived(uint32_t data, uint32_t channel)
 {
     uint32_t data_and_channel = (data&0x0FFFFFFF) | (channel << 28);
-    to_spi_data[channel_encoder[channel]].push_back(data_and_channel);
+    auto delay = data & (1<<27) ? 0 : channel_latency[channel]; // High bit of CTRL denote Seq based operation - no need to delay after OP
+    to_spi_data.push_back(data_and_channel);
+    while(delay--) to_spi_data.push_back(0);
 }
 
 bool SPIBrigeManager::spi_exchange_loop(bool first_entry)
 {
-    int idx = 1;
-    int start = 0;
-    int max = 0;
+    auto first = to_spi_data.begin();
+    auto counter = std::min(to_spi_data.size(), SPI_QUEUE_SIZE);
 
-    memset(spi_exchange_buffer.data(), 0, sizeof(uint32_t)*SPI_QUEUE_SIZE);
+    std::copy_n(first, counter, spi_exchange_buffer.begin());
+    to_spi_data.erase(first, first + counter);
 
-    for(auto& ref: latencies)
-    {
-        auto& queue = to_spi_data[idx++];
-        int base = start++;
-        if (base>=spi_exchange_buffer.size()) break;
-        while(!queue.empty())
-        {
-            while(base<SPI_QUEUE_SIZE && spi_exchange_buffer[base]) ++base;
-            if (base>=SPI_QUEUE_SIZE) break;
-            spi_exchange_buffer[base] = queue.front(); queue.pop_front();
-            if (base>max) max=base;
-            base += ref.latency;
-        }
-    }
-
-    while(!to_spi_data[0].empty())
-    {
-        while(start<SPI_QUEUE_SIZE && spi_exchange_buffer[start]) ++start;
-        if (start>=SPI_QUEUE_SIZE) break;
-        if (start>max) max=start;
-        spi_exchange_buffer[start++] = to_spi_data[0].front(); to_spi_data[0].pop_front();
-    }
-
-    if (!start && !first_entry) return false;
-    low_level_spi_exchange(++max, true);
+    if (!counter && !first_entry) return false;
+    low_level_spi_exchange(counter, true);
 
     int new_status_register = status_register;
 
@@ -255,12 +240,12 @@ bool SPIBrigeManager::spi_exchange_loop(bool first_entry)
 
     for(;;)
     {
-        int counter_value = 0;
+        uint32_t counter_value = 0;
         int counter_index = -1;
-        for(idx = 0; idx < max; ++idx)
+        for(size_t idx = 0; idx < counter; ++idx)
         {
             uint32_t value = spi_exchange_buffer[idx];
-            int channel = value >> 28;
+            uint32_t channel = value >> 28;
             if (channel) spi_integrator::SPIDevInterface::dispatch_input_data(value); else
             {
                 if (value & SizeReq) {counter_value = (value >> 11) & 0x1FFF; counter_index = idx + 1;} else
@@ -269,19 +254,22 @@ bool SPIBrigeManager::spi_exchange_loop(bool first_entry)
         }
 
         if (counter_index == -1) break;
-        int total_read = counter_value - max + counter_index;
+        int total_read = counter_value - counter + counter_index;
         if (total_read <= 0)
         {
             if (new_status_register & Empty) break;
             total_read = 1024 - 16;
         }
-        max = total_read + 16;
-        low_level_spi_exchange(max, false);
+        counter = total_read + 16;
+        low_level_spi_exchange(counter, false);
     }
 
     if (new_status_register != -1) new_status_register &= 0x00FFFFFF;
     if (new_status_register != status_register) 
+    {
+        status_register = new_status_register;
         spi_integrator::SPIDevInterface::dispatch_input_data(status_register);
+    }
 
-    return start != 0;
+    return counter != 0;
 }

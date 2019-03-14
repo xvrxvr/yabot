@@ -59,15 +59,15 @@ module Radio(
 
 wire stb_rdy;
 reg stb_out = 0;
-reg [3:0] ctl_img = 0;
+reg ctl_img = 1'b0;
 
 wire [11:0] data;
 wire stb_wr;
 
-assign out_wr = stb_wr & ctl_img[0];
+assign out_wr = stb_wr & ctl_img;
 
 always @(posedge clk)
-    if (in_wr) ctl_img <= in_ctrl;
+    if (in_wr) ctl_img <= in_ctrl[0];
 
 SPIMaster #(.DIV(5), .TO_SPI_BITS(24), .FROM_SPI_BITS(24)) radio(.clk(clk),
     .spi_miso(radio_do), .spi_mosi(radio_di), .spi_clk(radio_clk), .spi_cs(radio_cs),

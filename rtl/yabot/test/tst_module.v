@@ -237,14 +237,11 @@ localparam ID_PowerOff = 15;
 			jetson.expect(ID_RemoteCtrl, 28'h000_0096); // 150
 			jetson.send(ID_Nop, 0);
 			jetson.send(ID_Nop, 0);
-//			# (1 `MS);
-//			req_count(28'hD00_0000);
-//			jetson.expect(ID_RemoteCtrl, 28'h100_0000);
-//			jetson.send(ID_Nop, 0);
-//			jetson.send(ID_Nop, 0);
 			jetson.expect(ID_Nop, 28'hB00_0000);
 			jetson.send(ID_RemoteCtrl, 0);
 			#100;
+			
+			// !!! Verify RC timeout
 			
 			
 			// Sonar
@@ -254,18 +251,21 @@ localparam ID_PowerOff = 15;
 			# (100 `MKS);
 			req_count(28'hD00_2000);
 			jetson.send(ID_Nop, 0);			
-			jetson.expect(ID_Sonars, 28'h500_0009);
-			jetson.expect(ID_Sonars, 28'h400_0009);
-			jetson.expect(ID_Sonars, 28'h300_0009);
-			jetson.expect(ID_Sonars, 28'h200_0009);
-			jetson.expect(ID_Sonars, 28'h100_0009);
-			jetson.expect(ID_Sonars, 28'h000_0009);
+			jetson.expect(ID_Sonars, 28'h500_000a);
+			jetson.expect(ID_Sonars, 28'h400_000a);
+			jetson.expect(ID_Sonars, 28'h300_000a);
+			jetson.expect(ID_Sonars, 28'h200_000a);
+			jetson.expect(ID_Sonars, 28'h100_000a);
+			jetson.expect(ID_Sonars, 28'h000_000a);
 			jetson.send(ID_Sonars, 0);
 			jetson.send(ID_Nop, 0);
 			jetson.send(ID_Nop, 0);
 			jetson.send(ID_Nop, 0);
 			jetson.send(ID_Nop, 0);
 			jetson.send(ID_Nop, 0);
+			
+			// !!! Verify sonar timeout
+            // !!! Verify sonar sequensor
 
 			// Servo
 			req_count(28'hF00_0000);

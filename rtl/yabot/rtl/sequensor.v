@@ -23,7 +23,7 @@ wire switch_index = dly_count >= (last_idx ? dly2 : dly1);
 assign index = idx;
 assign pulse = stb && (dly_count == 0);
 
-Divider #(DIV) prediv(.clk(clk), .reset(~run), .out(stb));
+Divider #(DIV) prediv(.clk(clk), .reset(~run || ((dly1|dly2) == 0)), .out(stb));
 
 always @(posedge clk)
     if (~run) dly_count <= 0; else

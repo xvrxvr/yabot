@@ -1,3 +1,3 @@
 `default_nettype none
 
-`define SIN
+// `define SIN

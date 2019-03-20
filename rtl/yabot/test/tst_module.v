@@ -227,6 +227,8 @@ localparam ID_PowerOff = 15;
 			jetson.send(ID_Nop, 0);
 			#200;
 			jetson.send(ID_Nop, 0);
+
+            // !!! Verify ADC sequensor
 			
 			// RC
 			jetson.expect(ID_Nop, 28'hB00_0000);
@@ -298,7 +300,7 @@ localparam ID_PowerOff = 15;
 			jetson.send(ID_Nop, 0);
 			jetson.send(ID_Motor, 28'h2_000_000);
 			#200;
-			req_count(28'hD00_0800);			
+			req_count(28'hD00_0000);			
 			jetson.expect(ID_Motor, 28'h1_014_00A);
 			jetson.send(ID_Nop, 0);
 			jetson.send(ID_Nop, 0);

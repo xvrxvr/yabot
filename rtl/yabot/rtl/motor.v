@@ -18,7 +18,12 @@ module Motor(
 	 // Read chanel
     output wire [3:0] out_ctrl,
     output wire [23:0] out_data,
-    output wire out_wr // Request to send data
+    output wire out_wr, // Request to send data
+
+    // Direct control
+    input wire [11:0] direct_m1,
+    input wire [11:0] direct_m2,
+    input wire direct_enable
 );
 
 reg [3:0] in_tag =0; // Latched input tag (in_ctrl)
@@ -77,7 +82,11 @@ always @(posedge clk)
 
 // Motor PWM control
 always @(posedge clk)
-    if (in_wr) begin
+    if (direct_enable) begin
+       {motor_dir[0], motor_pwm1} <= direct_m1;
+       {motor_dir[1], motor_pwm2} <= direct_m2;
+    end 
+    else if (in_wr) begin
         in_tag <= in_ctrl;
         {motor_dir[1], motor_pwm2, motor_dir[0], motor_pwm1} <=  in_data;
     end

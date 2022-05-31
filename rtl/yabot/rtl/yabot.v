@@ -153,24 +153,95 @@ assign rd_addr[3] = 0;
 `define OUT_IDX(idx) assign rb_data[idx*28+24 +: 4] = 4'b0;
 `define OUT_IDX1(idx, data) assign rb_data[idx*28+24 +: 4] = data;
 
+// Direct control
+wire direct_disable;
+wire [16:0] direct_rc1, direct_rc2;
+wire direct_rc_active;
+wire direct_active = direct_rc_active & ~direct_disable;
+wire [11:0] direct_motor1, direct_motor2;
+wire [1:0] local_serv;
+wire direct_l1;
+assign serv = direct_active ? rc[3:2] : local_serv;
+
+DC dc(.rc1(direct_rc1), .rc2(direct_rc2), .motor1(direct_motor1), .motor2(direct_motor2));
+
 // Modules
 Status  status(.clk(clk), `OUT(0),  .keys(btn), .locks({motor1_en_diag, motor2_en_diag}));
 `OUT_IDX1(0, 4'b1)
 Sonar   sonar(`IN_C(1),   `OUT_CA(1), .hc04_echo({xt_echo,xr1_echo,xr23_echo,xb_echo,xl12_echo,xl3_echo}), .hc04_trigger({xt_trig,xr1_trig,xr23_trig,xb_trig,xl12_trig,xl3_trig}));
-Motor   motor(`IN_C(2),   `OUT_C(2),  .motor_inb({motor2_inb,motor1_inb}), .motor_ina({motor2_ina,motor1_ina}), .motor_pwm({motor2_pwm,motor1_pwm}), .ppr_sence(ppr_m));
+Motor   motor(`IN_C(2),   `OUT_C(2),  .motor_inb({motor2_inb,motor1_inb}), .motor_ina({motor2_ina,motor1_ina}), .motor_pwm({motor2_pwm,motor1_pwm}), 
+              .ppr_sence(ppr_m), .direct_m1(direct_motor1), .direct_m2(direct_motor2), .direct_enable(direct_active));
 ADC       adc(`IN_C(3),   `OUT(3),    .adc_cs(adc_cs), .adc_clk(adc_clk), .adc_di(adc_di), .adc_do(adc_do));
 `OUT_IDX(3)
 Radio   radio(`IN_C(4),   `OUT(4),    .radio_cs(radio_msel), .radio_clk(radio_sclk), .radio_di(radio_sdi), .radio_do(radio_sdo));
 `OUT_IDX(4)
-RemoteCtl rct(`IN(5),     `OUT_CA(5), .rc(rc[5:0]));
-
-Servo   servo(`IN(13),  .servo_out(serv));
-GPIO     gpio(`IN(14),  .gpio_out({amp_mute,amp_stby,dac_mute,dac_demp,dac_flt,ledm[3],ledp[3],ledm[2],ledp[2],ledm[1],ledp[1],ledm[0],ledp[0]}));
+RemoteCtl rct(`IN(5),     `OUT_CA(5), .rc(rc[5:0]), .direct_ch1(direct_rc1), .direct_ch2(direct_rc2), .direct_active(direct_rc_active));
+Servo   servo(`IN(13),  .servo_out(local_serv));
+GPIO     gpio(`IN(14),  .gpio_out({direct_disable,amp_mute,amp_stby,dac_mute,dac_demp,dac_flt,ledm[3],ledp[3],ledm[2],ledp[2],ledm[1],ledp[1],ledm[0],direct_l1}));
 PowerOff poff(`IN(15),  .pwr_off(pwr_off));
 
 assign jetson_io16 = radio_mirq;
+assign ledp[0] = direct_l1 | direct_active;
 
 endmodule
+
+module DC(input wire [16:0] rc1, input wire [16:0] rc2, output wire [11:0] motor1, output wire [11:0] motor2);
+
+wire [9:0] rc1_p = PulseLenCvt(rc1);
+wire [9:0] rc2_p = PulseLenCvt(rc2);
+
+/*                                rc2
+   rc1            <0 (left)        |      >0 (right)
+>0 (forw)   m1=rc1+rc2; m2=rc1     |   m1=rc1; m2=rc1-rc2
+=0 (stall)  m1=rc1+rc2; m2=rc1-rc2 |   m1=rc2; m2=rc1-rc2
+<0 (back)   m1=rc1-rc2; m2=rc1     |   m1=rc1; m2=rc1+rc2
+*/
+
+wire [9:0] rc_add = Add(rc1_p, rc2_p);
+wire [9:0] rc_sub = Add(rc1_p, -rc2_p);
+
+wire rc2_sign = rc2_p[9];
+wire rc1_sign = rc1_p[9];
+wire rc1_zero = rc1_p == 0;
+
+wire [9:0] m1 = rc2_sign ? (rc1_sign ? rc_sub : rc_add ) : (rc1_zero ? rc2_p : rc1_p);
+wire [9:0] m2 = rc2_sign ? (rc1_zero ? rc_sub : rc1_p) : (rc1_sign ? rc_add : rc_sub);
+
+assign motor1 = Ext(m1);
+assign motor2 = Ext(m2);
+
+localparam DELTA = 10;
+
+function automatic [9:0] PulseLenCvt(input [16:0] p_length);
+begin
+   if (p_length<990) PulseLenCvt = 10'h201; else
+	if (p_length>2011) PulseLenCvt = 10'h1FF; else
+	if ((p_length>1500-DELTA) && (p_length<1500+DELTA)) PulseLenCvt = 0;
+	else PulseLenCvt = {(p_length[9:0]-10'd1500)};
+end    
+endfunction;
+
+function automatic [9:0] Add(input [9:0] a, b);
+reg [10:0] add;
+begin
+    add = {a[9], a} + {b[9], b};
+    if (add[10] == add[9]) Add = add[9:0];
+    else Add = {9 {add[10]}};
+end
+endfunction;
+
+function automatic [11:0] Ext(input [9:0] data);
+begin
+    Ext[11] = data[9];
+	 Ext[1:0] = {2 {data[0]}};
+	 Ext[10:2] = data[9] ? -(data[8:0]) : data[8:0];
+end
+endfunction;
+
+
+
+endmodule
+
 
 /*
 assign bi_led= 2'b11;

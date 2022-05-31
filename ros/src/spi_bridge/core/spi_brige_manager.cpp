@@ -10,7 +10,7 @@
 #include <linux/types.h>
 #include <poll.h>
 
-#define SPI_FILE "/dev/spidev0.0"  // <Bus>.<CS>
+#define SPI_FILE "/dev/spidev3.0"  // <Bus>.<CS>
 
 struct LatencyDef {
     spi_integrator::SpiDevices dev;

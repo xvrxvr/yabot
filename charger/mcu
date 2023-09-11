@@ -1,0 +1,68 @@
+ADUC841BSZ62-5                         DAC, 20 MHz             1500р 5дней
+62 K FLASH
+1 x 12bit ADC
+20 MHz
+REF 10mV prec, 15 ppm
+Signle ended
+
+ADUC831BSZ, Микроконв. Ind [PQFP-52]
+aduc832                                                        1100
+62K FLASH
+1 x 12 bit ADC
+16.78 MHz
+Signle ended
+
+ADUC816BS, Микроконв. Ind PQFP-52                              1200 5
+8K FLASH
+2 x 16 bit ADC
+12.58 MHz
+
+ADuC836BSZ, Микроконв. Ind PQFP-52                             1770 3-4 weeks
+62K FLASH
+2 x 16bit ADC (sigma/delta)
+12.58 MHz
+
+ADUC848BSZ62-5
+62K FLASH                                                      1240 5
+1 x 16 bit ADC (sigma/delta)
+12.58 MHz (32 KHz quarts)
+ISP (serial)
+24 IO
+UART, SPI, I2C
+Ref 1.25V (1%, 100ppm)
+Single/Diff inputs
+
+ADUC812                                                       630
+------------------------------------------------------------------------------------------
+
+MCP45HV51-502E/ST   5 x 153    (5K, 256 taps, I2C)
+
+------------------------------------------------------------------------------------------
+
+шунт - 0.05 Ом х 3A = 0.15V  (K ~ 10, max - 13.6)
+
+AD628    (K = 0.1)
+ADG508A
+MCP45HV51-502E/ST (5K)
+ADUC848BSZ62-5
+REF3020 (2.048V, 0.2%, 50ppm)
+AD8553  (K=0.1-1000, Vsup=5, RR input, zero drift)
+------------------------------------------------------------------------------------------
+
+Vinp - 2 Analog input (diff)                                     P1.0/1               (P1.*)
+Isence - 2 Analog input (diff)                                   P1.2/3               (P1.*)
+Vsupp - 1 Analog input (AIN/AINCOM)                              P1.4/AINCOM          (P1.*)
+CC/CV satus - 1 Analog input (AIN)                               P1.5/AINCOM          (P1.*)
+
+Vinp selector - 4 (5) digital output                             P3.3-7                    *
+QEnc - 3 digital input (with pull up)                            P3.2 P2.6,7               *
+TFT LCD (SPI) - 4 digital i/o  (???)   3V     \ 6 digital I/O    P2.0-2, P0.1-2
+Resistor (I2C) - 2 pins                                          SCL/SDA
+UART (download) - 2 pins (TX/RX)                                 P3.0/1
+LCD backlight (PWM)                                              P2.5
+BDS Charge Disable - 1 pin                                       P0.3
+
+
+P0.4-7  (oped drain, digital)
+P1.6,7  (AIN, Digital input only)
+P2.3,4

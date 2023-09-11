@@ -1,0 +1,40 @@
+﻿Offline:                                            Text size (8x16): 40x15
+
+OFFLINE
+V1/2/3/4
+Vbatt
+[last charge time]
+
+-------------------------------------
+Online/No charge:
+
+ONLINE (Press to Charge)
+Vinput
+V1/2/3/4
+Vbatt
+[last charge time]
+
+------------------------------------
+Online/Charge:
+
+CHARGE   [CC/CV]
+Vinput
+V1/2/3/4    (balance1/2/3/4 coded by color)
+Vch/Ich     (balance by color)
+Time charge/balance/eta
+------------------------------------
+Online/Charge/Graph
+
+Text:
+CHARGE
+Vch/Ich   + balance (by color)     11 bit * 2 + 9 bit * 4 + 5 = 63 bit  (256 samples)
+V1/2/3/4  + balance1/2/3/4
+
+Graph:
+Vch/Ich   + balance
+V1/2/3/4  + balance
+
+CC/CV - bg color + text on screen (in top l/r corner)
+
+1 sampl per second = 4 minutes
+

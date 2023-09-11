@@ -1,0 +1,19 @@
+﻿dpl - 218
+dph - 121
+r2 - 210
+    
+    mov a, r2
+    mov b, dpl
+    mul ab       b, a <- 45780 (178, 212)
+    mov r1, b    r1 <- 178 
+//  b_hi = hi(B*210/212)   => r1
+    mov a, r2
+    mov b, dph
+    mul ab       b, a <- 99, 66
+    mov dpl, b   dpl <- 99
+//  w = A*210/212       => dpl, a
+    add a, r1
+//  w += b_hi
+    jnc 1$
+    inc dpl
+1$:

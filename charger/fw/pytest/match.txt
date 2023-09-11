@@ -1,0 +1,48 @@
+﻿S_2_56 = 1
+S_1_28 = 2
+S_640 = 4
+S_320 = 8
+S_160 = 16
+S_80 = 32
+S_40 = 64
+S_20 = 128
+
+def voltage(value, scale, mult):
+    result = value = value*2.1*mult/scale/65536
+    suf = "V"
+    if value < 0.05:
+        value *= 1000
+        suf = "mV"
+    return result, "{:.2f}{}".format(value, suf)
+
+def V(value, scale, mult=1, shift=0, m2=1):
+    result, img = voltage(value-shift, scale, mult*m2)
+    return result, "{} ({})".format(img, value)
+
+def I(value):
+    result = current = value/14218.0
+    suf = "A"
+    if current < 0.05:
+        current *= 1000
+        suf = "mA"
+    return result, "{:.2f}{} ({})".format(current, suf, value)
+
+
+V: x * 2.1 (* 1.01) * 10 / (S_?*65536)
+I: x / 14218
+
+Input = V(data.Input,   S_2_56, 10)                2.1*10/(1*65536)     *10                       210/65536                          +156          105   (1101001) >>15
+FullBat = V(data.FullBat, S_2_56, 10, m2=m2)       2.1*10*1.01/(1*65536)*10                       212/65536                          +155          53     (110101) >>14
+CurrentSence = I(data.CurrentSence)                /14218               *100                      100/14218   461/65535              +71           461 (111001101) >>16
+                                                   
+BT1 = V(data.BT1, S_640, 10, m2=m2)                2.1*10*1.01/(4*65536)*100                      2121/(4*65536)  530/65536          +62           265 (100001001) >>15
+BT2 = V(data.BT2, S_640, 10, m2=m2)
+BT3 = V(data.BT3, S_640, 10, m2=m2)
+BT4 = V(data.BT4, S_640, 10, m2=m2)
+   
+BL1 = V(data.BL1, S_640, 10)                       2.1*10/(4*65536)   (x/12483.048)     3.5/3.9       43690/48684
+BL2 = V(data.BL2, S_640, 10)
+BL3 = V(data.BL3, S_640, 10)
+BL4 = V(data.BL4, S_640, 10)
+
+CC_CV = V(data.CC_CV, S_2_56, 10, 0x8000)          (x-0x8000)*2.1*10/(1*65536)  (x/3120.7)   0.1/10   2360/63975

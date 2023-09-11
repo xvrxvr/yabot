@@ -1,0 +1,134 @@
+﻿Vinp - 2 Analog input (diff)                                     P1.0/1               (P1.*)
+Isence - 2 Analog input (diff)                                   P1.2/3               (P1.*)
+Vsupp - 1 Analog input (AIN/AINCOM)                              P1.4/AINCOM          (P1.*)
+CC/CV satus - 1 Analog input (AIN)                               P1.5/AINCOM          (P1.*)
+
+Vinp selector - 4 (5) digital output                             P3.3-7                    *
+QEnc - 3 digital input (with pull up)                            P3.2 P2.6,7               *
+TFT LCD (SPI) - 4 digital i/o  (???)   3V     \ 6 digital I/O    P2.0-2, P0.1-2
+Resistor (I2C) - 2 pins                                          SCL/SDA
+UART (download) - 2 pins (TX/RX)                                 P3.0/1
+LCD backlight (PWM)                                              P2.5
+BDS Charge Disable - 1 pin                                       P0.3
+
+
+P0.4-7  (oped drain, digital)
+P1.6,7  (AIN, Digital input only)
+P2.3,4
+------------------------------------------------------------------------------------------------
+
+P0 (open drain):
+  0 - LCD reset       O
+  1 - LCD CS          O
+  2 - LCD D/C         O
+  3 - Charge enable   O  (1-enable)
+  4 - Fan             O
+  5 - spare
+  6 - QENC Btn        I (ext pull up)
+  7 - reserved
+
+P1:
+  0,1 - Diff Vinp AD628 (controlled by MUX on P3.3-7)  A
+  2,3 - Current sence AD8553                           A
+  4 -   Vinput sence (div by 22K/330K)                 A
+  5 -   CC/CV sence                                    A
+  6,7 - spare                                          I/PU
+
+P2:
+  0 - LCD SPI CLK          O SPI
+  1 - LCD SPI MOSI         O SPI
+  2 - LCD SPI MISO         I SPI
+  3 - 
+  4 - QENC B               I/PU
+  5 - reserved (for PWM)
+  6 - LCD PWM              O PWM
+  7 - BTN1                 I/PU
+
+P3:
+  0 - RxD                  I UART
+  1 - TxD                  O UART
+  2 - QENC A
+  3-7 - A0-A4              O
+-------------------------------------------------------------------
+
+V-                          V+
+
+A2/1/0:   Src               A4/2/3:  Src                432
+000       Battery-          000      BT1                000
+001       BL1               001      Battery+           010
+010       BT3               010      BT2                001
+011       BL4               011      BT3                011
+100       BT1               1xx      NegBMS             1xx
+101       BL2               
+110       BT2               
+111       BL3               
+
+      ----------------------+---------- Battery +
+                            |
+                            R
+                            |
+                            +----- BL4
+                   B4       |
+                         ||-+
+                       --||-+
+                            |
+                        ----+---------- BT3
+                            |
+                            R
+                            |
+                            +----- BL3
+                   B3       |
+                         ||-+
+                       --||-+
+                            |
+                        ----+---------- BT2
+                            |
+                            R
+                            |
+                            +----- BL2
+                   B4       |
+                         ||-+
+                       --||-+
+                            |
+                        ----+---------- BT1
+                            |
+                            R
+                            |
+                            +----- BL1
+                   B1       |
+                         ||-+
+                       --||-+
+                            |
+   --+---- ...switch... ----+---------- Battery -
+     +- NegBMS
+
+
+--------------------------
+A4-0        V-      V+       What
+0_1000 08   Bat-    Bat+   All Bat V
+1_x000 10   Bat-    NegBMS Charge state
+
+0_0000 00   Bat-    BT1    B1 voltage          (/12483.05)
+0_0100 04   BT1     BT2    B2 voltage
+0_1110 0E   BT2     BT3    B3 voltage
+0_1010 0A   BT3     Bat+   B4 voltage
+
+0_0001 01   BL1     BT1    Balance 1
+0_0101 05   BL2     BT2    Balance 2
+0_1111 0F   BL3     BT3    Balance 3
+0_1011 0B   BL4     Bat+   Balance 4
+
+0_0110 06   BT2     BT2    Zero
+-------------------------------                                      off                             on
+                                                                                                     
+VI_Zero,                809A                                         80c2                            80f1
+VI_FullBat,             0003                                         00d9                            2d85                        (16.46 - 2d88)
+VI_B?,                  000A - 000C                                  0364 03a0 039c 036b             b619 c285 c1f2 b72d
+VI_CurrentSence,        0030                                         001f                            023e
+VI_Input,               F2E1                                         f2f8                            e42a
+
+VI_BL?,                 8006 - 8007                                  8004 8005 8006 807e             800d 802b 8037 8045
+VI_CC_CV,               807D                                         807d                            8000
+VI_Charge,              8002                                         7f4e                            8000
+
+VI_CurrentSence,        0030            047d                         0x4c7 (1223) @ 16.47V/400Ом (41.175 mA)    (X/29.7 -> mA) 2.2A max :(

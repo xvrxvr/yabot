@@ -1,0 +1,19 @@
+﻿/*
+I:
+    max - 2.53A (36037)   253
+    min - 200mA            20
+
+V:
+    max - 21.1V           110
+    min - 10V               0
+*/
+
+    uint16_t cc_voltage[256];   // 1024 bytes  - organized in one array
+    uint16_t cv_current[256];   // contains time stamp (in 1sec granularity)
+
+
+uint16_t start_index;  // 0-255 CC part (voltage), 256-511 CV part (current)
+uint16_t cur_index;
+
+eeprom:
+512 x 3 (median filter, 1 minute granularity, ETA time)
